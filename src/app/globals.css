@@ -1,0 +1,28 @@
+@import "tailwindcss";
+
+@theme inline {
+  --font-sans: "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --font-serif: "Playfair Display", "Georgia", "Times New Roman", serif;
+  --color-night: #020617;
+  --color-ocean: #0f172a;
+  --color-mist: #e2e8f0;
+  --color-sun: #fbbf24;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: #ffffff;
+  color: #111827;
+}
+
+::selection {
+  background: rgba(34, 211, 238, 0.28);
+  color: #082f49;
+}
+
+.glass-panel {
+  @apply border border-white/15 bg-white/10 backdrop-blur-xl;
+}
