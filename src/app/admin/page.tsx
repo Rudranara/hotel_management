@@ -11,7 +11,7 @@ export default async function AdminPage() {
   const { rooms, bookings, users } = await getAdminDashboardData();
 
   return (
-    <section className="mx-auto w-full max-w-7xl space-y-8 px-4 py-12 sm:px-6 lg:px-8">
+    <div className="space-y-8">
       <div className="rounded-[2rem] border border-white/15 bg-white/10 p-8 backdrop-blur-xl">
         <p className="text-sm uppercase tracking-[0.35em] text-amber-200">Admin cockpit</p>
         <h1 className="mt-3 font-serif text-5xl text-white">Control operations, {user.name}</h1>
@@ -38,6 +38,6 @@ export default async function AdminPage() {
         <AdminBookingManager bookings={bookings.map((booking) => ({ ...booking, _id: String(booking._id) })) as never} />
         <AdminUserManager users={users.map((entry) => ({ ...entry, _id: String(entry._id) })) as never} />
       </div>
-    </section>
+    </div>
   );
 }

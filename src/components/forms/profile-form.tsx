@@ -45,66 +45,72 @@ export function ProfileForm({ user }: ProfileFormProps) {
     }
   }
 
+  const inputCls = "w-full rounded-xl border border-[#E5E7EB] bg-white px-4 py-3 text-[#111827] outline-none transition focus:border-[#22C7C7] focus:ring-2 focus:ring-[#22C7C7]/20 placeholder:text-[#9CA3AF]";
+  const labelCls = "mb-1.5 block text-xs font-medium uppercase tracking-wider text-[#6B7280]";
+
   return (
     <form
       action={(formData) => {
         void handleSubmit(formData);
       }}
-      className="space-y-5 rounded-[2rem] border border-white/15 bg-white/10 p-6 backdrop-blur-xl"
+      className="space-y-5 rounded-2xl border border-[#E5E7EB] bg-white p-6 shadow-sm"
     >
       <div className="grid gap-4 md:grid-cols-2">
         <label className="block">
-          <span className="mb-2 block text-sm text-white/70">Name</span>
+          <span className={labelCls}>Name</span>
           <input
             name="name"
             defaultValue={user.name}
             required
-            className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none focus:border-amber-200"
+            className={inputCls}
           />
         </label>
         <label className="block">
-          <span className="mb-2 block text-sm text-white/70">Email</span>
+          <span className={labelCls}>Email</span>
           <input
             value={user.email}
             disabled
-            className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white/50 outline-none"
+            className={`${inputCls} cursor-not-allowed bg-[#F8FAFC] text-[#9CA3AF]`}
           />
         </label>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
         <label className="block">
-          <span className="mb-2 block text-sm text-white/70">Phone</span>
+          <span className={labelCls}>Phone</span>
           <input
             name="phone"
             defaultValue={user.phone ?? ""}
-            className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none focus:border-amber-200"
+            className={inputCls}
+            placeholder="+91 00000 00000"
           />
         </label>
         <label className="block">
-          <span className="mb-2 block text-sm text-white/70">Avatar URL</span>
+          <span className={labelCls}>Avatar URL</span>
           <input
             name="avatar"
             defaultValue={user.avatar ?? ""}
-            className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none focus:border-amber-200"
+            className={inputCls}
+            placeholder="https://..."
           />
         </label>
       </div>
 
       <label className="block">
-        <span className="mb-2 block text-sm text-white/70">Address</span>
+        <span className={labelCls}>Address</span>
         <textarea
           name="address"
           defaultValue={user.address ?? ""}
-          rows={4}
-          className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none focus:border-amber-200"
+          rows={3}
+          className={`${inputCls} resize-none`}
+          placeholder="Your address..."
         />
       </label>
 
       <button
         type="submit"
         disabled={loading}
-        className="rounded-full bg-white px-5 py-3 font-semibold text-slate-950 transition hover:bg-amber-100 disabled:opacity-60"
+        className="rounded-full bg-[#22C7C7] px-6 py-3 font-semibold text-white shadow-sm transition hover:bg-[#1AB5B5] disabled:opacity-60"
       >
         {loading ? "Saving..." : "Save profile"}
       </button>

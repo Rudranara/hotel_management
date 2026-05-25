@@ -8,7 +8,6 @@ const navLinks = [
   { href: "/", label: "Home" },
   { href: "/rooms", label: "Rooms" },
   { href: "/dashboard", label: "Dashboard" },
-  { href: "/admin", label: "Admin" },
 ];
 
 export async function Navbar() {
