@@ -1,5 +1,6 @@
 import { buildBookingPrice, ensureRoomAvailable } from "@/lib/booking";
 import { getApiUser } from "@/lib/dal";
+import { sendBookingConfirmedEmail } from "@/lib/email";
 import { apiError, apiSuccess } from "@/lib/http";
 import { connectToDatabase } from "@/lib/mongodb";
 import { validateBookingInput } from "@/lib/validators";
@@ -79,8 +80,20 @@ export async function POST(request: Request) {
       status: "pending",
     });
 
+    // Fire-and-forget confirmation email
+    void sendBookingConfirmedEmail({
+      guestName: String(user.name),
+      guestEmail: String(user.email),
+      bookingNumber: booking.bookingNumber,
+      roomName: pricing.room.name,
+      checkIn: new Date(validated.data.checkIn).toLocaleDateString("en-IN", { dateStyle: "medium" }),
+      checkOut: new Date(validated.data.checkOut).toLocaleDateString("en-IN", { dateStyle: "medium" }),
+      nights: pricing.nights,
+      totalPrice: pricing.totalPrice,
+    });
+
     return apiSuccess(
-      { bookingNumber: booking.bookingNumber, totalPrice: booking.totalPrice },
+      { bookingId: String(booking._id), bookingNumber: booking.bookingNumber, totalPrice: booking.totalPrice },
       "Booking created successfully.",
       201,
     );

@@ -2,6 +2,7 @@ import { getApiUser } from "@/lib/dal";
 import { apiError, apiSuccess } from "@/lib/http";
 import { connectToDatabase } from "@/lib/mongodb";
 import { validateRoomInput } from "@/lib/validators";
+import Booking from "@/models/Booking";
 import Room from "@/models/Room";
 import { slugify } from "@/utils/format";
 
@@ -13,6 +14,8 @@ export async function GET(request: Request) {
     const query = searchParams.get("query");
     const type = searchParams.get("type");
     const maxPrice = searchParams.get("maxPrice");
+    const checkIn = searchParams.get("checkIn");
+    const checkOut = searchParams.get("checkOut");
 
     const filters: Record<string, unknown> = {};
 
@@ -29,6 +32,25 @@ export async function GET(request: Request) {
 
     if (maxPrice) {
       filters.price = { $lte: Number(maxPrice) };
+    }
+
+    // Exclude rooms with overlapping confirmed/active bookings
+    if (checkIn && checkOut) {
+      const ci = new Date(checkIn);
+      const co = new Date(checkOut);
+      if (!isNaN(ci.getTime()) && !isNaN(co.getTime()) && ci < co) {
+        const conflicting = await Booking.find({
+          status: { $in: ["pending", "confirmed", "active"] },
+          checkIn: { $lt: co },
+          checkOut: { $gt: ci },
+        })
+          .select("room")
+          .lean();
+        const bookedRoomIds = conflicting.map((b) => b.room);
+        if (bookedRoomIds.length > 0) {
+          filters._id = { $nin: bookedRoomIds };
+        }
+      }
     }
 
     const rooms = await Room.find(filters).sort({ featured: -1, createdAt: -1 }).lean();

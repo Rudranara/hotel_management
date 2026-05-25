@@ -6,8 +6,19 @@ import { ChevronLeft, MapPin, Star, Users } from "lucide-react";
 import { getRoomBySlug } from "@/lib/dal";
 import { isDatabaseConfigured } from "@/lib/env";
 import { formatCurrency } from "@/utils/format";
+import { ImageLightbox } from "@/components/image-lightbox";
 
 export const dynamic = "force-dynamic";
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const room = await getRoomBySlug(slug).catch(() => null);
+  if (!room) return { title: "Room | Huts4u" };
+  return {
+    title: `${(room as { name?: string }).name ?? "Room"} | Huts4u`,
+    description: (room as { description?: string }).description ?? "Luxury hotel room at Huts4u.",
+  };
+}
 
 type NormalizedRoom = {
   _id: string;
@@ -283,7 +294,7 @@ export default async function RoomDetailsPage({
                   {room.rating.toFixed(1)} &middot; {room.reviewCount} reviews
                 </span>
                 <span className="flex items-center gap-1.5">
-                  <Users size={14} className="text-amber-300" />
+                  <Users size={14} className="text-[#22C7C7]" />
                   Up to {room.capacity} guests
                 </span>
               </div>
@@ -299,32 +310,20 @@ export default async function RoomDetailsPage({
           {/* Left column */}
           <div className="space-y-8">
 
-            {/* Image gallery */}
-            {room.images.length > 1 && (
-              <div className="grid grid-cols-3 gap-3">
-                {room.images.slice(1, 4).map((img, i) => (
-                  <div key={i} className="relative h-44 overflow-hidden rounded-2xl">
-                    <Image
-                      src={img}
-                      alt={`${room.name} view ${i + 2}`}
-                      fill
-                      className="object-cover transition duration-500 hover:scale-105"
-                      sizes="(max-width: 768px) 33vw, 250px"
-                    />
-                  </div>
-                ))}
-              </div>
+            {/* Image gallery with lightbox */}
+            {room.images.length > 0 && (
+              <ImageLightbox images={room.images} roomName={room.name} />
             )}
 
             {/* Description */}
             <div className="rounded-[2rem] border border-white/10 bg-white/5 p-8">
-              <p className="text-xs uppercase tracking-[0.35em] text-amber-200">About this room</p>
+              <p className="text-xs uppercase tracking-[0.35em] text-[#22C7C7]">About this room</p>
               <p className="mt-4 text-base leading-8 text-white/70">{room.description}</p>
             </div>
 
             {/* Amenities */}
             <div className="rounded-[2rem] border border-white/10 bg-white/5 p-8">
-              <p className="mb-5 text-xs uppercase tracking-[0.35em] text-amber-200">Amenities &amp; features</p>
+              <p className="mb-5 text-xs uppercase tracking-[0.35em] text-[#22C7C7]">Amenities &amp; features</p>
               <div className="flex flex-wrap gap-2.5">
                 {room.amenities.map((amenity) => (
                   <span
@@ -341,10 +340,10 @@ export default async function RoomDetailsPage({
             <div className="rounded-[2rem] border border-white/10 bg-white/5 p-8">
               <div className="mb-6 flex items-center justify-between gap-4">
                 <div>
-                  <p className="text-xs uppercase tracking-[0.35em] text-amber-200">Guest reviews</p>
+                  <p className="text-xs uppercase tracking-[0.35em] text-[#22C7C7]">Guest reviews</p>
                   <h2 className="mt-2 text-2xl font-semibold text-white">What travelers are saying</h2>
                 </div>
-                <div className="shrink-0 rounded-2xl bg-amber-300/15 px-4 py-3 text-center">
+                <div className="shrink-0 rounded-2xl bg-[#22C7C7]/15 px-4 py-3 text-center">
                   <div className="flex items-center gap-1.5">
                     <Star size={16} className="fill-amber-300 text-amber-300" />
                     <span className="text-xl font-semibold text-white">{room.rating.toFixed(1)}</span>
@@ -362,7 +361,7 @@ export default async function RoomDetailsPage({
                     >
                       <div className="flex items-center justify-between gap-4">
                         <div className="flex items-center gap-3">
-                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-amber-300/20 text-sm font-semibold text-amber-200">
+                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#22C7C7]/20 text-sm font-semibold text-[#22C7C7]">
                             {review.user.name.charAt(0)}
                           </div>
                           <p className="font-medium text-white">{review.user.name}</p>
@@ -386,7 +385,7 @@ export default async function RoomDetailsPage({
           {/* Booking sidebar */}
           <aside>
             <div className="sticky top-24 rounded-[2rem] border border-white/10 bg-white/5 p-8">
-              <p className="text-xs uppercase tracking-[0.35em] text-white/40">Reserve this room</p>
+              <p className="text-xs uppercase tracking-[0.35em] text-[#22C7C7]">Reserve this room</p>
 
               <div className="mt-5">
                 <p className="text-sm text-white/45">Per night</p>
@@ -424,7 +423,7 @@ export default async function RoomDetailsPage({
               {available ? (
                 <Link
                   href={`/booking/${room._id}`}
-                  className="mt-6 inline-flex w-full justify-center rounded-full bg-white px-5 py-4 font-semibold text-slate-950 transition hover:bg-amber-100"
+                  className="mt-6 inline-flex w-full justify-center rounded-full bg-[#22C7C7] px-5 py-4 font-semibold text-white transition hover:bg-[#1AB5B5]"
                 >
                   Book this room
                 </Link>

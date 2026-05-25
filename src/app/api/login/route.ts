@@ -4,10 +4,16 @@ import { setSessionCookie } from "@/lib/auth";
 import { apiError, apiSuccess } from "@/lib/http";
 import { isDatabaseConfigured } from "@/lib/env";
 import { connectToDatabase } from "@/lib/mongodb";
+import { rateLimit } from "@/lib/rate-limit";
 import { validateLoginInput } from "@/lib/validators";
 import User from "@/models/User";
 
 export async function POST(request: Request) {
+  const ip = request.headers.get("x-forwarded-for") ?? request.headers.get("x-real-ip") ?? "unknown";
+  if (!rateLimit(`login:${ip}`, 10, 60_000)) {
+    return apiError("Too many login attempts. Please wait a minute and try again.", 429);
+  }
+
   if (!isDatabaseConfigured()) {
     return apiError(
       "Database not configured. Create a .env.local file with MONGODB_URI to enable login.",

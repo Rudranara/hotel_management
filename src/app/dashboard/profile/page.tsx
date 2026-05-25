@@ -4,6 +4,11 @@ import { ProfileForm } from "@/components/forms/profile-form";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = {
+  title: "Profile | Huts4u",
+  description: "Manage your Huts4u profile and account details.",
+};
+
 export default async function DashboardProfilePage() {
   const user = await requireAuth();
   const plainUser = JSON.parse(JSON.stringify(user));

@@ -12,6 +12,11 @@ import { SetupNotice } from "@/components/setup-notice";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = {
+  title: "Book a Room | Huts4u",
+  description: "Reserve your luxury stay at Huts4u.",
+};
+
 export default async function BookingPage({
   params,
 }: {

@@ -7,6 +7,11 @@ import { RoomFilters } from "@/components/forms/room-filters";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = {
+  title: "Rooms | Huts4u",
+  description: "Browse our curated collection of luxury rooms and suites. Filter by type, dates, and price to find your perfect stay.",
+};
+
 const DEMO_ROOMS = [
   {
     _id: "demo-1",

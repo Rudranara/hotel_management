@@ -2,6 +2,11 @@ import Image from "next/image";
 
 import { AuthForm } from "@/components/forms/auth-form";
 
+export const metadata = {
+  title: "Create Account | Huts4u",
+  description: "Create your Huts4u account to book luxury stays and manage reservations.",
+};
+
 export default function RegisterPage() {
   return (
     <section className="relative flex min-h-[calc(100vh-80px)] items-center justify-center px-4 py-16">

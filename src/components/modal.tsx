@@ -17,14 +17,14 @@ export function Modal({ open, onClose, title, children }: ModalProps) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 px-4 backdrop-blur-md">
-      <div className={cn("w-full max-w-2xl rounded-[2rem] border border-white/20 bg-white/10 p-6 shadow-2xl")}>
-        <div className="mb-4 flex items-center justify-between">
-          <h3 className="text-xl font-semibold text-white">{title}</h3>
+    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-slate-900/50 px-4 py-8 backdrop-blur-sm">
+      <div className={cn("w-full max-w-2xl rounded-2xl border border-[#E5E7EB] bg-white p-6 shadow-xl")}>
+        <div className="mb-5 flex items-center justify-between">
+          <h3 className="text-xl font-semibold text-[#111827]">{title}</h3>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-full border border-white/20 px-3 py-1 text-sm text-white/80 transition hover:bg-white/10"
+            className="rounded-full border border-[#E5E7EB] px-3 py-1 text-sm text-[#6B7280] transition hover:bg-[#F1F5F9]"
           >
             Close
           </button>

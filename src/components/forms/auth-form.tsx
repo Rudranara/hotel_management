@@ -64,7 +64,7 @@ export function AuthForm({ mode }: AuthFormProps) {
         <span className="mb-5 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-white/15 text-sm font-semibold text-white backdrop-blur-md">
           H4
         </span>
-        <p className="mt-1 text-xs uppercase tracking-[0.35em] text-amber-200">
+        <p className="mt-1 text-xs uppercase tracking-[0.35em] text-[#22C7C7]">
           {mode === "register" ? "Create account" : "Welcome back"}
         </p>
         <h1 className="mt-2 font-serif text-3xl leading-snug text-white sm:text-4xl">
@@ -89,7 +89,7 @@ export function AuthForm({ mode }: AuthFormProps) {
               required
               minLength={2}
               autoComplete="name"
-              className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none transition placeholder:text-white/35 focus:border-amber-200/70 focus:bg-white/10"
+              className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none transition placeholder:text-white/35 focus:border-[#22C7C7]/70 focus:bg-white/10"
               placeholder="Aarav Sharma"
             />
           </label>
@@ -102,7 +102,7 @@ export function AuthForm({ mode }: AuthFormProps) {
             type="email"
             required
             autoComplete="email"
-            className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none transition placeholder:text-white/35 focus:border-amber-200/70 focus:bg-white/10"
+            className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none transition placeholder:text-white/35 focus:border-[#22C7C7]/70 focus:bg-white/10"
             placeholder="guest@huts4u.com"
           />
         </label>
@@ -116,7 +116,7 @@ export function AuthForm({ mode }: AuthFormProps) {
               required
               minLength={8}
               autoComplete={mode === "register" ? "new-password" : "current-password"}
-              className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 pr-12 text-white outline-none transition placeholder:text-white/35 focus:border-amber-200/70 focus:bg-white/10"
+              className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 pr-12 text-white outline-none transition placeholder:text-white/35 focus:border-[#22C7C7]/70 focus:bg-white/10"
               placeholder="Minimum 8 characters"
             />
             <button
@@ -133,7 +133,7 @@ export function AuthForm({ mode }: AuthFormProps) {
         <button
           type="submit"
           disabled={loading}
-          className="w-full rounded-full bg-white px-5 py-3 font-semibold text-slate-950 transition hover:bg-amber-100 disabled:opacity-60"
+          className="w-full rounded-full bg-[#22C7C7] px-5 py-3 font-semibold text-white transition hover:bg-[#1AB5B5] disabled:opacity-60"
         >
           {loading ? "Please wait…" : mode === "register" ? "Create account" : "Sign in"}
         </button>
@@ -143,7 +143,7 @@ export function AuthForm({ mode }: AuthFormProps) {
         {mode === "register" ? "Already have an account?" : "Don't have an account?"}{" "}
         <Link
           href={mode === "register" ? "/login" : "/register"}
-          className="font-semibold text-amber-200 transition hover:text-white"
+          className="font-semibold text-[#22C7C7] transition hover:text-white"
         >
           {mode === "register" ? "Sign in" : "Register now"}
         </Link>

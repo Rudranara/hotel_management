@@ -1,10 +1,17 @@
 import Link from "next/link";
-import { BedDouble, CalendarDays, CheckCircle2, Clock3, XCircle } from "lucide-react";
+import { BedDouble, CalendarDays, CheckCircle2, Clock3, CreditCard, XCircle } from "lucide-react";
 
-import { requireAuth, getDashboardData } from "@/lib/dal";
+import { requireAuth, getDashboardData, getUserReviewedRoomIds } from "@/lib/dal";
+import { isRazorpayConfigured } from "@/lib/env";
 import { BookingCard } from "@/components/booking-card";
+import { CancelBookingButton } from "@/components/forms/cancel-booking-button";
+import { ReviewForm } from "@/components/forms/review-form";
 
 export const dynamic = "force-dynamic";
+
+export const metadata = {
+  title: "My Bookings | Huts4u",
+};
 
 const STATUS_GROUPS = [
   { key: "all",       label: "All stays",  icon: CalendarDays  },
@@ -15,7 +22,11 @@ const STATUS_GROUPS = [
 
 export default async function DashboardBookingsPage() {
   const user = await requireAuth();
-  const { bookings } = await getDashboardData(String(user._id));
+  const [{ bookings }, reviewedRoomIds] = await Promise.all([
+    getDashboardData(String(user._id)),
+    getUserReviewedRoomIds(String(user._id)),
+  ]);
+  const stripeReady = isRazorpayConfigured();
 
   const now = new Date();
   const counts = {
@@ -62,9 +73,42 @@ export default async function DashboardBookingsPage() {
       {/* ── Booking list or empty state ─────────────────────── */}
       {bookings.length > 0 ? (
         <div className="space-y-4">
-          {bookings.map((booking) => (
-            <BookingCard key={String(booking._id)} booking={booking as never} />
-          ))}
+          {bookings.map((booking) => {
+            const roomId = (booking.room as { _id?: unknown } | null)?._id;
+            const canReview =
+              booking.status === "completed" &&
+              roomId &&
+              !reviewedRoomIds.has(String(roomId));
+
+            return (
+              <div key={String(booking._id)} className="space-y-2">
+                <BookingCard booking={booking as never} />
+
+                {(booking.status === "pending" || booking.status === "confirmed") && (
+                  <div className="flex flex-wrap items-center justify-end gap-2 px-1">
+                    {booking.status === "pending" && (
+                      <Link
+                        href={`/booking/confirmation/${String(booking._id)}`}
+                        className="inline-flex items-center gap-1.5 rounded-full bg-[#22C7C7] px-4 py-2 text-xs font-semibold text-white transition hover:bg-[#1AB5B5]"
+                      >
+                        <CreditCard className="h-3.5 w-3.5" />
+                        {stripeReady ? "Complete payment" : "View booking"}
+                      </Link>
+                    )}
+                    <CancelBookingButton bookingId={String(booking._id)} />
+                  </div>
+                )}
+
+                {canReview && (
+                  <ReviewForm
+                    roomId={String(roomId)}
+                    roomName={(booking.room as { name?: string } | null)?.name ?? "Room"}
+                    bookingId={String(booking._id)}
+                  />
+                )}
+              </div>
+            );
+          })}
         </div>
       ) : (
         <div className="flex flex-col items-center gap-6 rounded-2xl border border-[#E5E7EB] bg-white px-6 py-16 text-center shadow-sm">

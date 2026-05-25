@@ -95,13 +95,13 @@ export function AdminRoomManager({ rooms }: AdminRoomManagerProps) {
   }
 
   return (
-    <section className="space-y-5 rounded-[2rem] border border-white/15 bg-white/10 p-6 backdrop-blur-xl">
+    <section className="space-y-5 rounded-2xl border border-[#E5E7EB] bg-white p-6 shadow-sm">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-xs uppercase tracking-[0.35em] text-white/40">Inventory</p>
-          <h2 className="mt-2 text-2xl font-semibold text-white">Manage rooms</h2>
+          <p className="text-xs font-medium uppercase tracking-[0.35em] text-[#22C7C7]">Inventory</p>
+          <h2 className="mt-2 text-2xl font-semibold text-[#111827]">Manage rooms</h2>
         </div>
-        <button onClick={beginCreate} className="rounded-full bg-white px-5 py-3 text-sm font-semibold text-slate-950">
+        <button onClick={beginCreate} className="rounded-full bg-[#22C7C7] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#1AB5B5]">
           Add room
         </button>
       </div>
@@ -110,24 +110,24 @@ export function AdminRoomManager({ rooms }: AdminRoomManagerProps) {
         {rooms.map((room) => (
           <article
             key={room._id}
-            className="flex flex-col gap-4 rounded-[1.5rem] border border-white/10 bg-white/5 p-5 md:flex-row md:items-center md:justify-between"
+            className="flex flex-col gap-4 rounded-xl border border-[#E5E7EB] bg-[#F8FAFC] p-5 md:flex-row md:items-center md:justify-between"
           >
             <div>
-              <h3 className="text-xl font-semibold text-white">{room.name}</h3>
-              <p className="mt-1 text-sm text-white/60">
+              <h3 className="text-base font-semibold text-[#111827]">{room.name}</h3>
+              <p className="mt-1 text-sm text-[#6B7280]">
                 {room.type} in {room.location}
               </p>
             </div>
             <div className="flex items-center gap-3">
               <button
                 onClick={() => beginEdit(room)}
-                className="rounded-full border border-white/10 px-4 py-2 text-sm text-white transition hover:bg-white/10"
+                className="rounded-full border border-[#E5E7EB] bg-white px-4 py-2 text-sm text-[#374151] transition hover:border-[#22C7C7]/40 hover:text-[#22C7C7]"
               >
                 Edit
               </button>
               <button
                 onClick={() => void handleDelete(room._id)}
-                className="rounded-full border border-rose-300/20 px-4 py-2 text-sm text-rose-200 transition hover:bg-rose-400/10"
+                className="rounded-full border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-600 transition hover:bg-red-100"
               >
                 Delete
               </button>
@@ -141,16 +141,16 @@ export function AdminRoomManager({ rooms }: AdminRoomManagerProps) {
           action={(formData) => {
             void handleSubmit(formData);
           }}
-          className="grid gap-4 text-white"
+          className="grid gap-4"
         >
           <div className="grid gap-4 md:grid-cols-2">
             <input
               name="name"
               defaultValue={editingRoom?.name ?? ""}
               placeholder="Room name"
-              className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3"
+              className="rounded-xl border border-[#E5E7EB] bg-white px-4 py-3 text-[#111827] outline-none focus:border-[#22C7C7] focus:ring-2 focus:ring-[#22C7C7]/20"
             />
-            <select name="type" defaultValue={editingRoom?.type ?? ROOM_TYPES[0]} className="rounded-2xl border border-white/10 bg-slate-950/40 px-4 py-3">
+            <select name="type" defaultValue={editingRoom?.type ?? ROOM_TYPES[0]} className="rounded-xl border border-[#E5E7EB] bg-white px-4 py-3 text-[#111827] outline-none focus:border-[#22C7C7]">
               {ROOM_TYPES.map((roomType) => (
                 <option key={roomType} value={roomType}>
                   {roomType}
@@ -164,28 +164,28 @@ export function AdminRoomManager({ rooms }: AdminRoomManagerProps) {
               name="location"
               defaultValue={editingRoom?.location ?? ""}
               placeholder="Location"
-              className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3"
+              className="rounded-xl border border-[#E5E7EB] bg-white px-4 py-3 text-[#111827] outline-none focus:border-[#22C7C7] focus:ring-2 focus:ring-[#22C7C7]/20"
             />
             <input
               name="price"
               type="number"
               defaultValue={editingRoom?.price ?? 12000}
               placeholder="Price"
-              className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3"
+              className="rounded-xl border border-[#E5E7EB] bg-white px-4 py-3 text-[#111827] outline-none focus:border-[#22C7C7] focus:ring-2 focus:ring-[#22C7C7]/20"
             />
             <input
               name="capacity"
               type="number"
               defaultValue={editingRoom?.capacity ?? 2}
               placeholder="Capacity"
-              className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3"
+              className="rounded-xl border border-[#E5E7EB] bg-white px-4 py-3 text-[#111827] outline-none focus:border-[#22C7C7] focus:ring-2 focus:ring-[#22C7C7]/20"
             />
           </div>
 
           <select
             name="availabilityStatus"
             defaultValue={editingRoom?.availabilityStatus ?? "available"}
-            className="rounded-2xl border border-white/10 bg-slate-950/40 px-4 py-3"
+            className="rounded-xl border border-[#E5E7EB] bg-white px-4 py-3 text-[#111827] outline-none focus:border-[#22C7C7]"
           >
             <option value="available">Available</option>
             <option value="limited">Limited</option>
@@ -197,7 +197,7 @@ export function AdminRoomManager({ rooms }: AdminRoomManagerProps) {
             rows={4}
             defaultValue={editingRoom?.description ?? ""}
             placeholder="Description"
-            className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3"
+            className="rounded-xl border border-[#E5E7EB] bg-white px-4 py-3 text-[#111827] outline-none focus:border-[#22C7C7] focus:ring-2 focus:ring-[#22C7C7]/20"
           />
 
           <textarea
@@ -205,29 +205,30 @@ export function AdminRoomManager({ rooms }: AdminRoomManagerProps) {
             rows={4}
             defaultValue={editingRoom?.images.join("\n") ?? ""}
             placeholder="One image URL per line"
-            className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3"
+            className="rounded-xl border border-[#E5E7EB] bg-white px-4 py-3 text-[#111827] outline-none focus:border-[#22C7C7] focus:ring-2 focus:ring-[#22C7C7]/20"
           />
 
           <div className="grid gap-2 md:grid-cols-2">
             {ROOM_AMENITIES.map((amenity) => (
-              <label key={amenity} className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+              <label key={amenity} className="flex cursor-pointer items-center gap-3 rounded-xl border border-[#E5E7EB] bg-[#F8FAFC] px-4 py-3 text-[#374151] transition hover:border-[#22C7C7]/30">
                 <input
                   type="checkbox"
                   name="amenities"
                   value={amenity}
                   defaultChecked={editingRoom?.amenities.includes(amenity) ?? false}
+                  className="accent-[#22C7C7]"
                 />
-                <span>{amenity}</span>
+                <span className="text-sm">{amenity}</span>
               </label>
             ))}
           </div>
 
-          <label className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
-            <input type="checkbox" name="featured" defaultChecked={editingRoom?.featured ?? false} />
-            <span>Feature this room on the homepage</span>
+          <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-[#E5E7EB] bg-[#F8FAFC] px-4 py-3 text-[#374151] transition hover:border-[#22C7C7]/30">
+            <input type="checkbox" name="featured" defaultChecked={editingRoom?.featured ?? false} className="accent-[#22C7C7]" />
+            <span className="text-sm">Feature this room on the homepage</span>
           </label>
 
-          <button type="submit" disabled={loading} className="rounded-full bg-white px-5 py-3 font-semibold text-slate-950">
+          <button type="submit" disabled={loading} className="rounded-full bg-[#22C7C7] px-5 py-3 font-semibold text-white transition hover:bg-[#1AB5B5] disabled:opacity-60">
             {loading ? "Saving..." : editingRoom ? "Save changes" : "Create room"}
           </button>
         </form>

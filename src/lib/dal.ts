@@ -73,7 +73,20 @@ export async function getRooms(filters?: { query?: string; type?: string; maxPri
     query.price = { $lte: filters.maxPrice };
   }
 
-  return Room.find(query).sort({ featured: -1, createdAt: -1 }).lean();
+  const rooms = await Room.find(query).sort({ featured: -1, createdAt: -1 }).lean();
+
+  // Compute live availability: "booked" if a confirmed/active booking hasn't ended yet
+  const today = new Date();
+  const bookedRoomIds = await Booking.distinct("room", {
+    status: { $in: ["confirmed", "active"] },
+    checkOut: { $gt: today },
+  });
+  const bookedSet = new Set(bookedRoomIds.map(String));
+
+  return rooms.map((room) => ({
+    ...room,
+    availabilityStatus: bookedSet.has(String(room._id)) ? "booked" : "available",
+  }));
 }
 
 export async function getRoomBySlug(slug: string) {
@@ -84,12 +97,25 @@ export async function getRoomBySlug(slug: string) {
     return null;
   }
 
-  const reviews = await Review.find({ room: room._id })
-    .populate("user", "name avatar")
-    .sort({ createdAt: -1 })
-    .lean();
+  const [reviews, activeBookingCount] = await Promise.all([
+    Review.find({ room: room._id })
+      .populate("user", "name avatar")
+      .sort({ createdAt: -1 })
+      .lean(),
+    Booking.countDocuments({
+      room: room._id,
+      status: { $in: ["confirmed", "active"] },
+      checkOut: { $gt: new Date() },
+    }),
+  ]);
 
-  return { room, reviews };
+  return {
+    room: {
+      ...room,
+      availabilityStatus: activeBookingCount > 0 ? "booked" : "available",
+    },
+    reviews,
+  };
 }
 
 export async function getDashboardData(userId: string) {
@@ -119,5 +145,49 @@ export async function getAdminDashboardData() {
     User.find().select("-password").sort({ createdAt: -1 }).lean(),
   ]);
 
-  return { rooms, bookings, users };
+  // Analytics: daily revenue for last 30 days
+  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+  const revenueByDay = await Booking.aggregate([
+    { $match: { createdAt: { $gte: thirtyDaysAgo }, status: { $in: ["confirmed", "completed"] } } },
+    {
+      $group: {
+        _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+        revenue: { $sum: "$totalPrice" },
+        count: { $sum: 1 },
+      },
+    },
+    { $sort: { _id: 1 } },
+  ]);
+
+  // Upcoming check-ins (next 7 days)
+  const sevenDaysFromNow = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+  const upcomingCheckIns = await Booking.find({
+    checkIn: { $gte: new Date(), $lte: sevenDaysFromNow },
+    status: { $in: ["confirmed", "pending"] },
+  })
+    .populate("room", "name type images")
+    .populate("user", "name email")
+    .sort({ checkIn: 1 })
+    .limit(10)
+    .lean();
+
+  return { rooms, bookings, users, revenueByDay, upcomingCheckIns };
+}
+
+export async function getBookingById(id: string, userId?: string) {
+  await connectToDatabase();
+
+  const query: Record<string, unknown> = { _id: id };
+  if (userId) query.user = userId;
+
+  return Booking.findOne(query)
+    .populate("room", "name type location images price")
+    .populate("user", "name email")
+    .lean();
+}
+
+export async function getUserReviewedRoomIds(userId: string) {
+  await connectToDatabase();
+  const reviews = await Review.find({ user: userId }).select("room").lean();
+  return new Set(reviews.map((r) => String(r.room)));
 }

@@ -2,6 +2,11 @@ import Image from "next/image";
 
 import { AuthForm } from "@/components/forms/auth-form";
 
+export const metadata = {
+  title: "Sign In | Huts4u",
+  description: "Sign in to your Huts4u account to manage bookings and preferences.",
+};
+
 export default function LoginPage() {
   return (
     <section className="relative flex min-h-[calc(100vh-80px)] items-center justify-center px-4 py-16">

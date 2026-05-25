@@ -13,6 +13,11 @@ import { BookingCard } from "@/components/booking-card";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = {
+  title: "Dashboard | Huts4u",
+  description: "View your bookings, upcoming stays, and account overview.",
+};
+
 const STATUS_STYLES: Record<string, string> = {
   confirmed: "bg-emerald-50 text-emerald-700 border border-emerald-200",
   pending:   "bg-amber-50 text-amber-700 border border-amber-200",
