@@ -6,47 +6,51 @@ import Room from "@/models/Room";
 import { slugify } from "@/utils/format";
 
 export async function GET(request: Request) {
-  await connectToDatabase();
-  const { searchParams } = new URL(request.url);
+  try {
+    await connectToDatabase();
+    const { searchParams } = new URL(request.url);
 
-  const query = searchParams.get("query");
-  const type = searchParams.get("type");
-  const maxPrice = searchParams.get("maxPrice");
+    const query = searchParams.get("query");
+    const type = searchParams.get("type");
+    const maxPrice = searchParams.get("maxPrice");
 
-  const filters: Record<string, unknown> = {};
+    const filters: Record<string, unknown> = {};
 
-  if (query) {
-    filters.$or = [
-      { name: { $regex: query, $options: "i" } },
-      { location: { $regex: query, $options: "i" } },
-    ];
+    if (query) {
+      filters.$or = [
+        { name: { $regex: query, $options: "i" } },
+        { location: { $regex: query, $options: "i" } },
+      ];
+    }
+
+    if (type && type !== "All") {
+      filters.type = type;
+    }
+
+    if (maxPrice) {
+      filters.price = { $lte: Number(maxPrice) };
+    }
+
+    const rooms = await Room.find(filters).sort({ featured: -1, createdAt: -1 }).lean();
+    return apiSuccess(rooms);
+  } catch {
+    return apiError("Unable to fetch rooms.", 500);
   }
-
-  if (type && type !== "All") {
-    filters.type = type;
-  }
-
-  if (maxPrice) {
-    filters.price = { $lte: Number(maxPrice) };
-  }
-
-  const rooms = await Room.find(filters).sort({ featured: -1, createdAt: -1 }).lean();
-  return apiSuccess(rooms);
 }
 
 export async function POST(request: Request) {
-  await connectToDatabase();
-  const user = await getApiUser();
-
-  if (!user) {
-    return apiError("Authentication required.", 401);
-  }
-
-  if (user.role !== "admin") {
-    return apiError("Only admins can create rooms.", 403);
-  }
-
   try {
+    await connectToDatabase();
+    const user = await getApiUser();
+
+    if (!user) {
+      return apiError("Authentication required.", 401);
+    }
+
+    if (user.role !== "admin") {
+      return apiError("Only admins can create rooms.", 403);
+    }
+
     const body = (await request.json()) as Record<string, unknown>;
     const validated = validateRoomInput(body);
 

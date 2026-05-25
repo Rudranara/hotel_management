@@ -2,14 +2,22 @@ import bcrypt from "bcryptjs";
 
 import { setSessionCookie } from "@/lib/auth";
 import { apiError, apiSuccess } from "@/lib/http";
+import { isDatabaseConfigured } from "@/lib/env";
 import { connectToDatabase } from "@/lib/mongodb";
 import { validateLoginInput } from "@/lib/validators";
 import User from "@/models/User";
 
 export async function POST(request: Request) {
-  await connectToDatabase();
+  if (!isDatabaseConfigured()) {
+    return apiError(
+      "Database not configured. Create a .env.local file with MONGODB_URI to enable login.",
+      503,
+    );
+  }
 
   try {
+    await connectToDatabase();
+
     const body = (await request.json()) as Record<string, unknown>;
     const validated = validateLoginInput(body);
 

@@ -7,29 +7,33 @@ export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  await connectToDatabase();
-  const user = await getApiUser();
+  try {
+    await connectToDatabase();
+    const user = await getApiUser();
 
-  if (!user) {
-    return apiError("Authentication required.", 401);
+    if (!user) {
+      return apiError("Authentication required.", 401);
+    }
+
+    if (user.role !== "admin") {
+      return apiError("Only admins can change booking status.", 403);
+    }
+
+    const { id } = await params;
+    const body = (await request.json()) as { status?: string };
+
+    if (!body.status) {
+      return apiError("Booking status is required.", 422);
+    }
+
+    const booking = await Booking.findByIdAndUpdate(id, { status: body.status }, { new: true }).lean();
+
+    if (!booking) {
+      return apiError("Booking not found.", 404);
+    }
+
+    return apiSuccess(booking, "Booking updated successfully.");
+  } catch {
+    return apiError("Unable to update booking.", 500);
   }
-
-  if (user.role !== "admin") {
-    return apiError("Only admins can change booking status.", 403);
-  }
-
-  const { id } = await params;
-  const body = (await request.json()) as { status?: string };
-
-  if (!body.status) {
-    return apiError("Booking status is required.", 422);
-  }
-
-  const booking = await Booking.findByIdAndUpdate(id, { status: body.status }, { new: true }).lean();
-
-  if (!booking) {
-    return apiError("Booking not found.", 404);
-  }
-
-  return apiSuccess(booking, "Booking updated successfully.");
 }

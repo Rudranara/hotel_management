@@ -10,32 +10,36 @@ function createBookingNumber() {
 }
 
 export async function GET() {
-  await connectToDatabase();
-  const user = await getApiUser();
+  try {
+    await connectToDatabase();
+    const user = await getApiUser();
 
-  if (!user) {
-    return apiError("Authentication required.", 401);
+    if (!user) {
+      return apiError("Authentication required.", 401);
+    }
+
+    const query = user.role === "admin" ? {} : { user: user._id };
+    const bookings = await Booking.find(query)
+      .populate("room", "name type images location price")
+      .populate("user", "name email")
+      .sort({ createdAt: -1 })
+      .lean();
+
+    return apiSuccess(bookings);
+  } catch {
+    return apiError("Unable to fetch bookings.", 500);
   }
-
-  const query = user.role === "admin" ? {} : { user: user._id };
-  const bookings = await Booking.find(query)
-    .populate("room", "name type images location price")
-    .populate("user", "name email")
-    .sort({ createdAt: -1 })
-    .lean();
-
-  return apiSuccess(bookings);
 }
 
 export async function POST(request: Request) {
-  await connectToDatabase();
-  const user = await getApiUser();
-
-  if (!user) {
-    return apiError("Authentication required.", 401);
-  }
-
   try {
+    await connectToDatabase();
+    const user = await getApiUser();
+
+    if (!user) {
+      return apiError("Authentication required.", 401);
+    }
+
     const body = (await request.json()) as Record<string, unknown>;
     const validated = validateBookingInput(body);
 

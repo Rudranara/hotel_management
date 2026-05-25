@@ -5,14 +5,14 @@ import { validateProfileInput } from "@/lib/validators";
 import User from "@/models/User";
 
 export async function PATCH(request: Request) {
-  await connectToDatabase();
-  const user = await getApiUser();
-
-  if (!user) {
-    return apiError("Authentication required.", 401);
-  }
-
   try {
+    await connectToDatabase();
+    const user = await getApiUser();
+
+    if (!user) {
+      return apiError("Authentication required.", 401);
+    }
+
     const body = (await request.json()) as Record<string, unknown>;
     const validated = validateProfileInput(body);
 

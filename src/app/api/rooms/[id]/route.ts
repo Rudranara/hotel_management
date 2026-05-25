@@ -9,20 +9,20 @@ export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  await connectToDatabase();
-  const user = await getApiUser();
-
-  if (!user) {
-    return apiError("Authentication required.", 401);
-  }
-
-  if (user.role !== "admin") {
-    return apiError("Only admins can update rooms.", 403);
-  }
-
-  const { id } = await params;
-
   try {
+    await connectToDatabase();
+    const user = await getApiUser();
+
+    if (!user) {
+      return apiError("Authentication required.", 401);
+    }
+
+    if (user.role !== "admin") {
+      return apiError("Only admins can update rooms.", 403);
+    }
+
+    const { id } = await params;
+
     const body = (await request.json()) as Record<string, unknown>;
     const validated = validateRoomInput(body);
 
@@ -56,23 +56,27 @@ export async function DELETE(
   _request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  await connectToDatabase();
-  const user = await getApiUser();
+  try {
+    await connectToDatabase();
+    const user = await getApiUser();
 
-  if (!user) {
-    return apiError("Authentication required.", 401);
+    if (!user) {
+      return apiError("Authentication required.", 401);
+    }
+
+    if (user.role !== "admin") {
+      return apiError("Only admins can delete rooms.", 403);
+    }
+
+    const { id } = await params;
+    const room = await Room.findByIdAndDelete(id).lean();
+
+    if (!room) {
+      return apiError("Room not found.", 404);
+    }
+
+    return apiSuccess(room, "Room deleted successfully.");
+  } catch {
+    return apiError("Unable to delete room.", 500);
   }
-
-  if (user.role !== "admin") {
-    return apiError("Only admins can delete rooms.", 403);
-  }
-
-  const { id } = await params;
-  const room = await Room.findByIdAndDelete(id).lean();
-
-  if (!room) {
-    return apiError("Room not found.", 404);
-  }
-
-  return apiSuccess(room, "Room deleted successfully.");
 }

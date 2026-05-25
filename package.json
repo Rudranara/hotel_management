@@ -3,9 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
+    "dev": "set \"NODE_OPTIONS=--require=%CD%/dns-preload.cjs\" && next dev",
+    "build": "set \"NODE_OPTIONS=--require=%CD%/dns-preload.cjs\" && next build",
+    "start": "set \"NODE_OPTIONS=--require=%CD%/dns-preload.cjs\" && next start",
+    "seed": "node scripts/seed.cjs",
     "lint": "eslint"
   },
   "dependencies": {
