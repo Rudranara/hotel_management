@@ -78,7 +78,7 @@ export async function getRooms(filters?: { query?: string; type?: string; maxPri
   // Compute live availability: "booked" if a confirmed/active booking hasn't ended yet
   const today = new Date();
   const bookedRoomIds = await Booking.distinct("room", {
-    status: { $in: ["confirmed", "active"] },
+    status: { $in: ["confirmed"] },
     checkOut: { $gt: today },
   });
   const bookedSet = new Set(bookedRoomIds.map(String));
@@ -104,7 +104,7 @@ export async function getRoomBySlug(slug: string) {
       .lean(),
     Booking.countDocuments({
       room: room._id,
-      status: { $in: ["confirmed", "active"] },
+      status: { $in: ["confirmed"] },
       checkOut: { $gt: new Date() },
     }),
   ]);

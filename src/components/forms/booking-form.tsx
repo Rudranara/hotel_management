@@ -20,6 +20,30 @@ export function BookingForm({
   const [checkIn, setCheckIn] = useState("");
   const [checkOut, setCheckOut] = useState("");
   const [guests, setGuests] = useState(2);
+  const [dateError, setDateError] = useState("");
+
+  function validateDates(ci: string, co: string) {
+    if (!ci) return "";
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const ciDate = new Date(ci);
+    if (ciDate < today) return "Check-in date must be today or in the future.";
+    if (co) {
+      const coDate = new Date(co);
+      if (coDate <= ciDate) return "Check-out must be at least 1 day after check-in.";
+    }
+    return "";
+  }
+
+  function handleCheckInChange(value: string) {
+    setCheckIn(value);
+    setDateError(validateDates(value, checkOut));
+  }
+
+  function handleCheckOutChange(value: string) {
+    setCheckOut(value);
+    setDateError(validateDates(checkIn, value));
+  }
 
   const nights =
     checkIn && checkOut
@@ -34,6 +58,13 @@ export function BookingForm({
   const total = nights * pricePerNight;
 
   async function handleSubmit(formData: FormData) {
+    const ci = String(formData.get("checkIn") ?? "");
+    const co = String(formData.get("checkOut") ?? "");
+    const err = validateDates(ci, co);
+    if (err) {
+      setDateError(err);
+      return;
+    }
     setLoading(true);
 
     try {
@@ -87,8 +118,8 @@ export function BookingForm({
             name="checkIn"
             required
             value={checkIn}
-            onChange={(e) => setCheckIn(e.target.value)}
-            className={inputCls}
+            onChange={(e) => handleCheckInChange(e.target.value)}
+            className={`${inputCls} ${dateError ? "border-red-500/60" : ""}`}
           />
         </label>
         <label className="block">
@@ -98,12 +129,13 @@ export function BookingForm({
             name="checkOut"
             required
             value={checkOut}
-            onChange={(e) => setCheckOut(e.target.value)}
+            onChange={(e) => handleCheckOutChange(e.target.value)}
             min={checkIn}
-            className={inputCls}
+            className={`${inputCls} ${dateError ? "border-red-500/60" : ""}`}
           />
         </label>
       </div>
+      {dateError && <p className="mt-1 text-xs text-red-400/80">{dateError}</p>}
 
       {/* Guests */}
       <label className="block">

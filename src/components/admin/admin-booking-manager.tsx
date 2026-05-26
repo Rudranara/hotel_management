@@ -1,23 +1,49 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { startTransition } from "react";
+import { startTransition, useState } from "react";
 import toast from "react-hot-toast";
+import { CalendarDays, User, BedDouble, ChevronLeft, ChevronRight } from "lucide-react";
 
 import { apiRequest } from "@/api/client";
 
-export function AdminBookingManager({
-  bookings,
-}: {
-  bookings: Array<{
-    _id: string;
-    bookingNumber: string;
-    status: string;
-    user?: { name?: string; email?: string };
-    room?: { name?: string; type?: string };
-  }>;
-}) {
+interface AdminBooking {
+  _id: string;
+  bookingNumber: string;
+  status: string;
+  checkIn?: string | Date;
+  checkOut?: string | Date;
+  totalPrice?: number;
+  guests?: number;
+  user?: { name?: string; email?: string };
+  room?: { name?: string; type?: string };
+}
+
+const PAGE_SIZE = 10;
+
+const STATUS_CONFIG: Record<string, { label: string; badge: string; border: string }> = {
+  pending:   { label: "Pending",   badge: "bg-amber-50 text-amber-700 border-amber-200",       border: "border-l-amber-400" },
+  confirmed: { label: "Confirmed", badge: "bg-emerald-50 text-emerald-700 border-emerald-200", border: "border-l-emerald-400" },
+  cancelled: { label: "Cancelled", badge: "bg-red-50 text-red-600 border-red-200",             border: "border-l-red-400" },
+  completed: { label: "Completed", badge: "bg-slate-100 text-slate-600 border-slate-200",      border: "border-l-slate-300" },
+};
+
+function fmtDate(d?: string | Date) {
+  if (!d) return "—";
+  return new Date(d).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "2-digit" });
+}
+
+function fmtINR(n?: number) {
+  if (!n) return null;
+  return new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(n);
+}
+
+export function AdminBookingManager({ bookings }: { bookings: AdminBooking[] }) {
   const router = useRouter();
+  const [page, setPage] = useState(1);
+
+  const totalPages = Math.ceil(bookings.length / PAGE_SIZE);
+  const paginated = bookings.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   async function updateStatus(id: string, status: string) {
     try {
@@ -33,38 +59,108 @@ export function AdminBookingManager({
   }
 
   return (
-    <section className="space-y-5 rounded-2xl border border-[#E5E7EB] bg-white p-6 shadow-sm">
-      <div>
+    <section className="overflow-hidden rounded-2xl border border-[#E5E7EB] bg-white shadow-sm">
+      <div className="border-b border-[#E5E7EB] px-6 py-5">
         <p className="text-xs font-medium uppercase tracking-[0.35em] text-[#22C7C7]">Operations</p>
-        <h2 className="mt-2 text-2xl font-semibold text-[#111827]">Manage bookings</h2>
+        <h2 className="mt-1.5 text-2xl font-semibold text-[#111827]">Manage bookings</h2>
       </div>
-      <div className="grid gap-4">
-        {bookings.map((booking) => (
-          <article
-            key={booking._id}
-            className="grid gap-4 rounded-xl border border-[#E5E7EB] bg-[#F8FAFC] p-5 lg:grid-cols-[2fr_2fr_1fr]"
-          >
-            <div>
-              <h3 className="text-base font-semibold text-[#111827]">{booking.bookingNumber}</h3>
-              <p className="text-sm text-[#6B7280]">{booking.room?.name ?? "Room"}</p>
+
+      {bookings.length === 0 ? (
+        <div className="px-6 py-12 text-center text-[#9CA3AF]">No bookings yet.</div>
+      ) : (
+        <>
+          <div className="divide-y divide-[#F1F5F9]">
+            {paginated.map((booking) => {
+              const cfg = STATUS_CONFIG[booking.status] ?? STATUS_CONFIG.pending;
+              return (
+                <div
+                  key={booking._id}
+                  className={`flex flex-col gap-4 border-l-4 px-6 py-5 transition hover:bg-[#F8FAFC] lg:flex-row lg:items-center ${cfg.border}`}
+                >
+                  {/* Booking ref + room + guest */}
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="font-mono text-sm font-semibold text-[#111827]">
+                        {booking.bookingNumber}
+                      </span>
+                      <span className={`rounded-full border px-2.5 py-0.5 text-xs font-semibold capitalize ${cfg.badge}`}>
+                        {cfg.label}
+                      </span>
+                    </div>
+                    <div className="mt-2 flex flex-wrap gap-x-5 gap-y-1 text-sm text-[#6B7280]">
+                      {booking.room?.name && (
+                        <span className="flex items-center gap-1.5">
+                          <BedDouble className="h-3.5 w-3.5 shrink-0 text-[#22C7C7]" />
+                          {booking.room.name}
+                          {booking.room.type && <span className="text-[#9CA3AF]">· {booking.room.type}</span>}
+                        </span>
+                      )}
+                      {booking.user?.name && (
+                        <span className="flex items-center gap-1.5">
+                          <User className="h-3.5 w-3.5 shrink-0 text-[#22C7C7]" />
+                          {booking.user.name}
+                          {booking.user.email && <span className="text-[#9CA3AF]">· {booking.user.email}</span>}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Dates + price */}
+                  <div className="flex shrink-0 flex-col gap-1 text-sm lg:items-end">
+                    {(booking.checkIn || booking.checkOut) && (
+                      <span className="flex items-center gap-1.5 text-[#374151]">
+                        <CalendarDays className="h-3.5 w-3.5 text-[#22C7C7]" />
+                        {fmtDate(booking.checkIn)} → {fmtDate(booking.checkOut)}
+                      </span>
+                    )}
+                    {fmtINR(booking.totalPrice) && (
+                      <span className="font-semibold text-[#111827]">{fmtINR(booking.totalPrice)}</span>
+                    )}
+                  </div>
+
+                  {/* Status select */}
+                  <select
+                    value={booking.status}
+                    onChange={(e) => void updateStatus(booking._id, e.target.value)}
+                    className="w-full shrink-0 rounded-xl border border-[#E5E7EB] bg-white px-4 py-2.5 text-sm text-[#111827] outline-none focus:border-[#22C7C7] focus:ring-2 focus:ring-[#22C7C7]/20 lg:w-40"
+                  >
+                    <option value="pending">Pending</option>
+                    <option value="confirmed">Confirmed</option>
+                    <option value="cancelled">Cancelled</option>
+                    <option value="completed">Completed</option>
+                  </select>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between border-t border-[#E5E7EB] px-6 py-4 text-sm">
+              <p className="text-[#9CA3AF]">
+                Showing {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, bookings.length)} of {bookings.length}
+              </p>
+              <div className="flex items-center gap-2">
+                <button
+                  disabled={page === 1}
+                  onClick={() => setPage((p) => p - 1)}
+                  className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#E5E7EB] text-[#374151] transition hover:bg-[#F1F5F9] disabled:pointer-events-none disabled:opacity-40"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
+                <span className="text-[#374151]">{page} / {totalPages}</span>
+                <button
+                  disabled={page === totalPages}
+                  onClick={() => setPage((p) => p + 1)}
+                  className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#E5E7EB] text-[#374151] transition hover:bg-[#F1F5F9] disabled:pointer-events-none disabled:opacity-40"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              </div>
             </div>
-            <div>
-              <p className="text-sm text-[#374151]">{booking.user?.name ?? "Guest"}</p>
-              <p className="text-sm text-[#9CA3AF]">{booking.user?.email ?? ""}</p>
-            </div>
-            <select
-              value={booking.status}
-              onChange={(event) => void updateStatus(booking._id, event.target.value)}
-              className="rounded-xl border border-[#E5E7EB] bg-white px-4 py-2.5 text-sm text-[#111827] outline-none focus:border-[#22C7C7] focus:ring-2 focus:ring-[#22C7C7]/20"
-            >
-              <option value="pending">Pending</option>
-              <option value="confirmed">Confirmed</option>
-              <option value="cancelled">Cancelled</option>
-              <option value="completed">Completed</option>
-            </select>
-          </article>
-        ))}
-      </div>
+          )}
+        </>
+      )}
     </section>
   );
 }

@@ -40,7 +40,7 @@ export async function GET(request: Request) {
       const co = new Date(checkOut);
       if (!isNaN(ci.getTime()) && !isNaN(co.getTime()) && ci < co) {
         const conflicting = await Booking.find({
-          status: { $in: ["pending", "confirmed", "active"] },
+          status: { $in: ["pending", "confirmed"] },
           checkIn: { $lt: co },
           checkOut: { $gt: ci },
         })

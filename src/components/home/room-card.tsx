@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { MapPin, Star } from "lucide-react";
 
 type RoomCardProps = {
@@ -11,12 +12,13 @@ type RoomCardProps = {
     oldPrice: string;
     meta: string;
   };
+  href?: string;
 };
 
-export function RoomCard({ room }: RoomCardProps) {
-  return (
-    <article className="rounded-2xl border border-[#E5E7EB] bg-white p-3 shadow-[0_4px_20px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_12px_32px_rgba(0,0,0,0.08)] lg:rounded-3xl lg:p-4">
-        <div className="relative h-[220px] overflow-hidden rounded-xl sm:h-52 lg:h-[240px] xl:h-[260px]">
+export function RoomCard({ room, href }: RoomCardProps) {
+  const inner = (
+    <>
+      <div className="relative h-[220px] overflow-hidden rounded-xl sm:h-52 lg:h-[240px] xl:h-[260px]">
         <Image src={room.image} alt={room.name} fill className="object-cover transition duration-500 hover:scale-[1.04]" sizes="(max-width: 640px) 300px, (max-width: 768px) 340px, 33vw" />
       </div>
       <div className="space-y-2.5 px-2 pt-4 lg:space-y-3 lg:px-2.5 lg:pt-5">
@@ -42,11 +44,31 @@ export function RoomCard({ room }: RoomCardProps) {
               <p className="text-sm text-[#9CA3AF] line-through lg:text-base">{room.oldPrice}</p>
             </div>
           </div>
-          <button className="flex w-full items-center justify-center rounded-full border border-[#E5E7EB] px-4 py-2.5 text-sm font-medium text-[#111827] transition hover:border-[#111827] hover:shadow-sm sm:w-auto sm:py-2 lg:px-5 lg:py-2.5 lg:text-base">
-            Reserve
-          </button>
+          {href ? (
+            <span className="flex w-full items-center justify-center rounded-full bg-[#22C7C7] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#1AB5B5] sm:w-auto sm:py-2 lg:px-5 lg:py-2.5 lg:text-base">
+              Reserve
+            </span>
+          ) : (
+            <button className="flex w-full items-center justify-center rounded-full border border-[#E5E7EB] px-4 py-2.5 text-sm font-medium text-[#111827] transition hover:border-[#111827] hover:shadow-sm sm:w-auto sm:py-2 lg:px-5 lg:py-2.5 lg:text-base">
+              Reserve
+            </button>
+          )}
         </div>
       </div>
+    </>
+  );
+
+  if (href) {
+    return (
+      <Link href={href} className="block rounded-2xl border border-[#E5E7EB] bg-white p-3 shadow-[0_4px_20px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_12px_32px_rgba(0,0,0,0.08)] lg:rounded-3xl lg:p-4">
+        {inner}
+      </Link>
+    );
+  }
+
+  return (
+    <article className="rounded-2xl border border-[#E5E7EB] bg-white p-3 shadow-[0_4px_20px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_12px_32px_rgba(0,0,0,0.08)] lg:rounded-3xl lg:p-4">
+      {inner}
     </article>
   );
 }

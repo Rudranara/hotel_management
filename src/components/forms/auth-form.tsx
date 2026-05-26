@@ -19,19 +19,42 @@ export function AuthForm({ mode }: AuthFormProps) {
   const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [errors, setErrors] = useState<{ name?: string; email?: string; password?: string }>({});
+  const [touched, setTouched] = useState<{ name?: boolean; email?: boolean; password?: boolean }>({});
+
+  function validate(fields: { name?: string; email?: string; password?: string }) {
+    const errs: { name?: string; email?: string; password?: string } = {};
+    if (mode === "register" && fields.name !== undefined) {
+      if (!fields.name || fields.name.trim().length < 2) errs.name = "Name must be at least 2 characters.";
+    }
+    if (fields.email !== undefined) {
+      if (!fields.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(fields.email)) errs.email = "Enter a valid email address.";
+    }
+    if (fields.password !== undefined) {
+      if (!fields.password || fields.password.length < 8) errs.password = "Password must be at least 8 characters.";
+    }
+    return errs;
+  }
+
+  function handleBlur(field: "name" | "email" | "password", value: string) {
+    setTouched((t) => ({ ...t, [field]: true }));
+    setErrors((e) => ({ ...e, ...validate({ [field]: value }) }));
+  }
 
   async function handleSubmit(formData: FormData) {
-    const payload =
-      mode === "register"
-        ? {
-            name: String(formData.get("name") ?? ""),
-            email: String(formData.get("email") ?? ""),
-            password: String(formData.get("password") ?? ""),
-          }
-        : {
-            email: String(formData.get("email") ?? ""),
-            password: String(formData.get("password") ?? ""),
-          };
+    const name = mode === "register" ? String(formData.get("name") ?? "") : undefined;
+    const email = String(formData.get("email") ?? "");
+    const password = String(formData.get("password") ?? "");
+
+    const allFields = mode === "register" ? { name, email, password } : { email, password };
+    const errs = validate(allFields);
+    setTouched({ name: true, email: true, password: true });
+    if (Object.keys(errs).length > 0) {
+      setErrors(errs);
+      return;
+    }
+
+    const payload = mode === "register" ? { name, email, password } : { email, password };
 
     setLoading(true);
 
@@ -81,54 +104,72 @@ export function AuthForm({ mode }: AuthFormProps) {
         className="space-y-5"
       >
         {mode === "register" && (
-          <label className="block">
-            <span className="mb-2 block text-sm text-white/70">Full name</span>
-            <input
-              name="name"
-              type="text"
-              required
-              minLength={2}
-              autoComplete="name"
-              className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none transition placeholder:text-white/35 focus:border-[#22C7C7]/70 focus:bg-white/10"
-              placeholder="Aarav Sharma"
-            />
-          </label>
+          <div className="block">
+            <label className="block">
+              <span className="mb-2 block text-sm text-white/70">Full name</span>
+              <input
+                name="name"
+                type="text"
+                required
+                minLength={2}
+                autoComplete="name"
+                onBlur={(e) => handleBlur("name", e.target.value)}
+                className={`w-full rounded-2xl border bg-white/5 px-4 py-3 text-white outline-none transition placeholder:text-white/35 focus:bg-white/10 ${touched.name && errors.name ? "border-red-500/70 focus:border-red-500" : "border-white/10 focus:border-[#22C7C7]/70"}`}
+                placeholder="Aarav Sharma"
+              />
+            </label>
+            {touched.name && errors.name && (
+              <p className="mt-1.5 text-xs text-red-400">{errors.name}</p>
+            )}
+          </div>
         )}
 
-        <label className="block">
-          <span className="mb-2 block text-sm text-white/70">Email address</span>
-          <input
-            name="email"
-            type="email"
-            required
-            autoComplete="email"
-            className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none transition placeholder:text-white/35 focus:border-[#22C7C7]/70 focus:bg-white/10"
-            placeholder="guest@huts4u.com"
-          />
-        </label>
-
-        <label className="block">
-          <span className="mb-2 block text-sm text-white/70">Password</span>
-          <div className="relative">
+        <div className="block">
+          <label className="block">
+            <span className="mb-2 block text-sm text-white/70">Email address</span>
             <input
-              name="password"
-              type={showPassword ? "text" : "password"}
+              name="email"
+              type="email"
               required
-              minLength={8}
-              autoComplete={mode === "register" ? "new-password" : "current-password"}
-              className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 pr-12 text-white outline-none transition placeholder:text-white/35 focus:border-[#22C7C7]/70 focus:bg-white/10"
-              placeholder="Minimum 8 characters"
+              autoComplete="email"
+              onBlur={(e) => handleBlur("email", e.target.value)}
+              className={`w-full rounded-2xl border bg-white/5 px-4 py-3 text-white outline-none transition placeholder:text-white/35 focus:bg-white/10 ${touched.email && errors.email ? "border-red-500/70 focus:border-red-500" : "border-white/10 focus:border-[#22C7C7]/70"}`}
+              placeholder="guest@huts4u.com"
             />
-            <button
-              type="button"
-              onClick={() => setShowPassword((prev) => !prev)}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 transition hover:text-white/80"
-              aria-label={showPassword ? "Hide password" : "Show password"}
-            >
-              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-            </button>
-          </div>
-        </label>
+          </label>
+          {touched.email && errors.email && (
+            <p className="mt-1.5 text-xs text-red-400">{errors.email}</p>
+          )}
+        </div>
+
+        <div className="block">
+          <label className="block">
+            <span className="mb-2 block text-sm text-white/70">Password</span>
+            <div className="relative">
+              <input
+                name="password"
+                type={showPassword ? "text" : "password"}
+                required
+                minLength={8}
+                autoComplete={mode === "register" ? "new-password" : "current-password"}
+                onBlur={(e) => handleBlur("password", e.target.value)}
+                className={`w-full rounded-2xl border bg-white/5 px-4 py-3 pr-12 text-white outline-none transition placeholder:text-white/35 focus:bg-white/10 ${touched.password && errors.password ? "border-red-500/70 focus:border-red-500" : "border-white/10 focus:border-[#22C7C7]/70"}`}
+                placeholder="Minimum 8 characters"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 transition hover:text-white/80"
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
+          </label>
+          {touched.password && errors.password && (
+            <p className="mt-1.5 text-xs text-red-400">{errors.password}</p>
+          )}
+        </div>
 
         <button
           type="submit"

@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ChevronLeft, MapPin, Star, Users } from "lucide-react";
+import { ChevronLeft, MapPin, Star, Users, ShieldCheck, Clock, BadgeCheck } from "lucide-react";
 
 import { getRoomBySlug } from "@/lib/dal";
 import { isDatabaseConfigured } from "@/lib/env";
@@ -423,9 +423,12 @@ export default async function RoomDetailsPage({
               {available ? (
                 <Link
                   href={`/booking/${room._id}`}
-                  className="mt-6 inline-flex w-full justify-center rounded-full bg-[#22C7C7] px-5 py-4 font-semibold text-white transition hover:bg-[#1AB5B5]"
+                  className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#22C7C7] px-5 py-4 font-semibold text-white transition hover:bg-[#1AB5B5]"
                 >
                   Book this room
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                  </svg>
                 </Link>
               ) : (
                 <div className="mt-6 inline-flex w-full cursor-not-allowed justify-center rounded-full bg-white/10 px-5 py-4 font-semibold text-white/30">
@@ -433,9 +436,19 @@ export default async function RoomDetailsPage({
                 </div>
               )}
 
-              <p className="mt-4 text-center text-xs text-white/30">
-                Free cancellation up to 48 hours before check-in
-              </p>
+              {/* Guarantees */}
+              <div className="mt-5 space-y-2.5">
+                {[
+                  { icon: ShieldCheck, text: "Free cancellation within 24 hours" },
+                  { icon: Clock,       text: "24/7 guest support" },
+                  { icon: BadgeCheck,  text: "Best price guaranteed" },
+                ].map(({ icon: Icon, text }) => (
+                  <p key={text} className="flex items-center gap-2 text-xs text-white/40">
+                    <Icon size={13} className="shrink-0 text-[#22C7C7]/70" />
+                    {text}
+                  </p>
+                ))}
+              </div>
             </div>
           </aside>
 

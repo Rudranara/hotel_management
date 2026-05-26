@@ -3,11 +3,15 @@
 import { useRouter } from "next/navigation";
 import { startTransition, useState } from "react";
 import toast from "react-hot-toast";
+import { MapPin, Users, Star, BadgeCheck, ChevronLeft, ChevronRight } from "lucide-react";
 
 import { apiRequest } from "@/api/client";
 import { ROOM_AMENITIES, ROOM_TYPES } from "@/lib/constants";
+import { formatCurrency } from "@/utils/format";
 
 import { Modal } from "@/components/modal";
+
+const PAGE_SIZE = 10;
 
 interface AdminRoomManagerProps {
   rooms: Array<{
@@ -30,6 +34,10 @@ export function AdminRoomManager({ rooms }: AdminRoomManagerProps) {
   const [open, setOpen] = useState(false);
   const [editingRoom, setEditingRoom] = useState<AdminRoomManagerProps["rooms"][number] | null>(null);
   const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(1);
+
+  const totalPages = Math.ceil(rooms.length / PAGE_SIZE);
+  const paginated = rooms.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   function beginCreate() {
     setEditingRoom(null);
@@ -95,46 +103,133 @@ export function AdminRoomManager({ rooms }: AdminRoomManagerProps) {
   }
 
   return (
-    <section className="space-y-5 rounded-2xl border border-[#E5E7EB] bg-white p-6 shadow-sm">
-      <div className="flex items-center justify-between">
+    <section className="overflow-hidden rounded-2xl border border-[#E5E7EB] bg-white shadow-sm">
+      {/* Header */}
+      <div className="flex items-center justify-between border-b border-[#E5E7EB] px-6 py-5">
         <div>
           <p className="text-xs font-medium uppercase tracking-[0.35em] text-[#22C7C7]">Inventory</p>
-          <h2 className="mt-2 text-2xl font-semibold text-[#111827]">Manage rooms</h2>
+          <h2 className="mt-1.5 text-2xl font-semibold text-[#111827]">Manage rooms</h2>
         </div>
-        <button onClick={beginCreate} className="rounded-full bg-[#22C7C7] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#1AB5B5]">
-          Add room
+        <button
+          onClick={beginCreate}
+          className="rounded-full bg-[#22C7C7] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#1AB5B5]"
+        >
+          + Add room
         </button>
       </div>
 
-      <div className="grid gap-4">
-        {rooms.map((room) => (
-          <article
-            key={room._id}
-            className="flex flex-col gap-4 rounded-xl border border-[#E5E7EB] bg-[#F8FAFC] p-5 md:flex-row md:items-center md:justify-between"
-          >
-            <div>
-              <h3 className="text-base font-semibold text-[#111827]">{room.name}</h3>
-              <p className="mt-1 text-sm text-[#6B7280]">
-                {room.type} in {room.location}
+      {rooms.length === 0 ? (
+        <div className="px-6 py-12 text-center text-[#9CA3AF]">No rooms yet. Add your first room above.</div>
+      ) : (
+        <>
+          <div className="divide-y divide-[#F1F5F9]">
+            {paginated.map((room) => {
+              const available = room.availabilityStatus === "available";
+              return (
+                <div
+                  key={room._id}
+                  className="flex flex-col gap-4 px-6 py-5 transition hover:bg-[#F8FAFC] sm:flex-row sm:items-center sm:gap-5"
+                >
+                  {/* Thumbnail */}
+                  {room.images[0] ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={room.images[0]}
+                      alt={room.name}
+                      className="h-16 w-24 shrink-0 rounded-xl object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-16 w-24 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#22C7C7]/20 to-[#22C7C7]/5 text-xs text-[#22C7C7]">
+                      No image
+                    </div>
+                  )}
+
+                  {/* Main info */}
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h3 className="font-semibold text-[#111827]">{room.name}</h3>
+                      <span className="rounded-full bg-[#F1F5F9] px-2 py-0.5 text-xs font-medium text-[#6B7280]">
+                        {room.type}
+                      </span>
+                      {room.featured && (
+                        <span className="flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-600">
+                          <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
+                          Featured
+                        </span>
+                      )}
+                      <span
+                        className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold ${
+                          available
+                            ? "bg-emerald-50 text-emerald-700"
+                            : "bg-red-50 text-red-600"
+                        }`}
+                      >
+                        <BadgeCheck className="h-3 w-3" />
+                        {available ? "Available" : room.availabilityStatus}
+                      </span>
+                    </div>
+                    <div className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-xs text-[#9CA3AF]">
+                      <span className="flex items-center gap-1">
+                        <MapPin className="h-3 w-3" />
+                        {room.location}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Users className="h-3 w-3" />
+                        {room.capacity} guests
+                      </span>
+                      <span className="font-semibold text-[#374151]">
+                        {formatCurrency(room.price)}/night
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex shrink-0 items-center gap-2">
+                    <button
+                      onClick={() => beginEdit(room)}
+                      className="rounded-full border border-[#E5E7EB] bg-white px-4 py-2 text-sm text-[#374151] transition hover:border-[#22C7C7]/40 hover:text-[#22C7C7]"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => void handleDelete(room._id)}
+                      className="rounded-full border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-600 transition hover:bg-red-100"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between border-t border-[#E5E7EB] px-6 py-4 text-sm">
+              <p className="text-[#9CA3AF]">
+                Showing {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, rooms.length)} of {rooms.length}
               </p>
+              <div className="flex items-center gap-2">
+                <button
+                  disabled={page === 1}
+                  onClick={() => setPage((p) => p - 1)}
+                  className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#E5E7EB] text-[#374151] transition hover:bg-[#F1F5F9] disabled:pointer-events-none disabled:opacity-40"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
+                <span className="text-[#374151]">{page} / {totalPages}</span>
+                <button
+                  disabled={page === totalPages}
+                  onClick={() => setPage((p) => p + 1)}
+                  className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#E5E7EB] text-[#374151] transition hover:bg-[#F1F5F9] disabled:pointer-events-none disabled:opacity-40"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              </div>
             </div>
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => beginEdit(room)}
-                className="rounded-full border border-[#E5E7EB] bg-white px-4 py-2 text-sm text-[#374151] transition hover:border-[#22C7C7]/40 hover:text-[#22C7C7]"
-              >
-                Edit
-              </button>
-              <button
-                onClick={() => void handleDelete(room._id)}
-                className="rounded-full border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-600 transition hover:bg-red-100"
-              >
-                Delete
-              </button>
-            </div>
-          </article>
-        ))}
-      </div>
+          )}
+        </>
+      )}
 
       <Modal open={open} onClose={() => setOpen(false)} title={editingRoom ? "Edit room" : "Add room"}>
         <form

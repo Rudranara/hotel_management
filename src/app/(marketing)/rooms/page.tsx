@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { ShieldCheck, Star, MapPin, Zap } from "lucide-react";
 
 import { getRooms } from "@/lib/dal";
 import { isDatabaseConfigured } from "@/lib/env";
@@ -119,6 +120,28 @@ export default async function RoomsPage() {
           </div>
         </div>
       </section>
+
+      {/* Trust strip */}
+      <div className="border-y border-white/5 bg-white/3">
+        <div className="mx-auto grid max-w-7xl grid-cols-2 gap-px px-4 sm:px-6 lg:grid-cols-4 lg:px-8">
+          {[
+            { icon: Star,        label: "4.8 avg. rating",      sub: "across all rooms" },
+            { icon: MapPin,      label: "5 destinations",       sub: "across Odisha" },
+            { icon: ShieldCheck, label: "Free cancellation",    sub: "within 24 hours" },
+            { icon: Zap,         label: "Instant confirmation", sub: "on every booking" },
+          ].map(({ icon: Icon, label, sub }) => (
+            <div key={label} className="flex items-center gap-3 py-5 pr-4">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#22C7C7]/10">
+                <Icon className="h-4 w-4 text-[#22C7C7]" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-white">{label}</p>
+                <p className="text-xs text-white/45">{sub}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
 
       {/* Filters + rooms grid */}
       <section className="mx-auto w-full max-w-7xl px-4 pb-20 pt-10 sm:px-6 lg:px-8">

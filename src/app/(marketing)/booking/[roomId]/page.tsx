@@ -1,6 +1,7 @@
 import Image from "next/image";
+import Link from "next/link";
 import { notFound } from "next/navigation";
-import { BedDouble, MapPin, Star, Users, Wifi } from "lucide-react";
+import { BedDouble, ChevronLeft, MapPin, Star, Users } from "lucide-react";
 
 import { connectToDatabase } from "@/lib/mongodb";
 import { isDatabaseConfigured } from "@/lib/env";
@@ -49,6 +50,16 @@ export default async function BookingPage({
         <div className="relative h-64 w-full overflow-hidden md:h-80">
           <Image src={heroImage} alt={room.name} fill className="object-cover" priority sizes="100vw" />
           <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/40 to-[#020617]" />
+          {/* Back link */}
+          <div className="absolute left-4 top-5 sm:left-8">
+            <Link
+              href={`/rooms`}
+              className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-black/30 px-3.5 py-1.5 text-sm text-white backdrop-blur-md transition hover:bg-white/15"
+            >
+              <ChevronLeft size={14} />
+              Rooms
+            </Link>
+          </div>
           <div className="absolute bottom-6 left-1/2 -translate-x-1/2 px-4 text-center">
             <p className="text-xs font-medium uppercase tracking-[0.35em] text-amber-300/80">Secure booking</p>
             <h1 className="mt-1 font-serif text-3xl font-medium text-white md:text-4xl">{room.name}</h1>
@@ -101,8 +112,7 @@ export default async function BookingPage({
               <p className="mb-3 text-xs font-medium uppercase tracking-widest text-white/40">Amenities</p>
               <div className="flex flex-wrap gap-2">
                 {room.amenities.slice(0, 8).map((a) => (
-                  <span key={a} className="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/60">
-                    <Wifi className="h-3 w-3" />
+                  <span key={a} className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/60">
                     {a}
                   </span>
                 ))}
