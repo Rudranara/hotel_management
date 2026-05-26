@@ -53,7 +53,7 @@ export function ProfileForm({ user }: ProfileFormProps) {
       action={(formData) => {
         void handleSubmit(formData);
       }}
-      className="space-y-5 rounded-2xl border border-[#E5E7EB] bg-white p-6 shadow-sm"
+      className="space-y-5"
     >
       <div className="grid gap-4 md:grid-cols-2">
         <label className="block">

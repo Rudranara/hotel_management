@@ -73,16 +73,32 @@ export function DashboardSkeleton() {
 export function BookingsSkeleton() {
   return (
     <div className="space-y-4">
+      {/* Tab bar skeleton */}
+      <div className="flex gap-1 rounded-2xl border border-[#E5E7EB] bg-white p-1.5">
+        {[1, 2, 3, 4].map((i) => (
+          <Skeleton key={i} className="h-9 flex-1 rounded-xl" />
+        ))}
+      </div>
+      {/* Card skeletons */}
       {[1, 2, 3].map((i) => (
-        <div key={i} className="rounded-2xl border border-[#E5E7EB] bg-white p-5 shadow-sm">
-          <div className="flex gap-4">
-            <Skeleton className="h-20 w-20 shrink-0 rounded-xl" />
-            <div className="flex-1 space-y-2">
-              <Skeleton className="h-5 w-2/5" />
-              <Skeleton className="h-4 w-1/3" />
-              <Skeleton className="h-4 w-1/4" />
+        <div key={i} className="flex overflow-hidden rounded-2xl border border-[#E5E7EB] border-l-4 border-l-[#E5E7EB] bg-white shadow-sm">
+          <Skeleton className="w-24 min-h-[110px] rounded-none sm:w-36" />
+          <div className="flex flex-1 flex-col justify-between gap-3 p-5">
+            <div className="flex items-start justify-between">
+              <div className="flex gap-2">
+                <Skeleton className="h-5 w-20 rounded-full" />
+                <Skeleton className="h-5 w-16 rounded-full" />
+              </div>
+              <Skeleton className="h-3 w-24" />
             </div>
-            <Skeleton className="h-6 w-20 rounded-full" />
+            <div>
+              <Skeleton className="h-5 w-2/5" />
+              <Skeleton className="mt-2 h-3.5 w-1/3" />
+            </div>
+            <div className="flex items-center justify-between">
+              <Skeleton className="h-7 w-48 rounded-lg" />
+              <Skeleton className="h-5 w-20" />
+            </div>
           </div>
         </div>
       ))}

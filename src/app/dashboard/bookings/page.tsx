@@ -1,11 +1,9 @@
 import Link from "next/link";
-import { BedDouble, CalendarDays, CheckCircle2, Clock3, CreditCard, XCircle } from "lucide-react";
+import { BedDouble } from "lucide-react";
 
 import { requireAuth, getDashboardData, getUserReviewedRoomIds } from "@/lib/dal";
 import { isRazorpayConfigured } from "@/lib/env";
-import { BookingCard } from "@/components/booking-card";
-import { CancelBookingButton } from "@/components/forms/cancel-booking-button";
-import { ReviewForm } from "@/components/forms/review-form";
+import { BookingsView, type SerializedBooking } from "@/components/dashboard/bookings-view";
 
 export const dynamic = "force-dynamic";
 
@@ -13,123 +11,42 @@ export const metadata = {
   title: "My Bookings | Huts4u",
 };
 
-const STATUS_GROUPS = [
-  { key: "all",       label: "All stays",  icon: CalendarDays  },
-  { key: "upcoming",  label: "Upcoming",   icon: Clock3        },
-  { key: "completed", label: "Completed",  icon: CheckCircle2  },
-  { key: "cancelled", label: "Cancelled",  icon: XCircle       },
-] as const;
-
 export default async function DashboardBookingsPage() {
   const user = await requireAuth();
   const [{ bookings }, reviewedRoomIds] = await Promise.all([
     getDashboardData(String(user._id)),
     getUserReviewedRoomIds(String(user._id)),
   ]);
-  const stripeReady = isRazorpayConfigured();
+  const razorpayReady = isRazorpayConfigured();
 
-  const now = new Date();
-  const counts = {
-    all:       bookings.length,
-    upcoming:  bookings.filter((b) => b.status !== "cancelled" && new Date(b.checkOut) >= now).length,
-    completed: bookings.filter((b) => b.status === "completed").length,
-    cancelled: bookings.filter((b) => b.status === "cancelled").length,
-  };
+  const serialized = JSON.parse(JSON.stringify(bookings)) as SerializedBooking[];
 
   return (
     <div className="space-y-8">
       {/* ── Header ─────────────────────────────────────────── */}
-      <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-xs font-medium uppercase tracking-[0.35em] text-[#22C7C7]">Guest history</p>
-          <h1 className="mt-2 text-3xl font-bold text-[#111827] md:text-4xl">Your bookings</h1>
+          <p className="text-xs font-semibold uppercase tracking-[0.35em] text-[#22C7C7]">Guest history</p>
+          <h1 className="mt-1.5 text-3xl font-bold text-[#111827] md:text-4xl">Your bookings</h1>
+          <p className="mt-1 text-sm text-[#6B7280]">
+            {serialized.length} reservation{serialized.length !== 1 ? "s" : ""} total
+          </p>
         </div>
-
         <Link
           href="/rooms"
-          className="inline-flex shrink-0 items-center gap-2 rounded-full bg-[#22C7C7] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#1AB5B5]"
+          className="inline-flex shrink-0 items-center gap-2 self-start rounded-full bg-[#22C7C7] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#1AB5B5] sm:self-auto"
         >
           <BedDouble className="h-4 w-4" />
           Browse rooms
         </Link>
       </div>
 
-      {/* ── Status summary chips ────────────────────────────── */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        {STATUS_GROUPS.map(({ key, label, icon: Icon }) => (
-          <div
-            key={key}
-            className="flex flex-col gap-1 rounded-2xl border border-[#E5E7EB] bg-white px-4 py-3 shadow-sm"
-          >
-            <div className="flex items-center gap-2 text-[#9CA3AF]">
-              <Icon className="h-3.5 w-3.5" />
-              <span className="text-xs">{label}</span>
-            </div>
-            <span className="text-2xl font-bold text-[#111827]">{counts[key]}</span>
-          </div>
-        ))}
-      </div>
-
-      {/* ── Booking list or empty state ─────────────────────── */}
-      {bookings.length > 0 ? (
-        <div className="space-y-4">
-          {bookings.map((booking) => {
-            const roomId = (booking.room as { _id?: unknown } | null)?._id;
-            const canReview =
-              booking.status === "completed" &&
-              roomId &&
-              !reviewedRoomIds.has(String(roomId));
-
-            return (
-              <div key={String(booking._id)} className="space-y-2">
-                <BookingCard booking={booking as never} />
-
-                {(booking.status === "pending" || booking.status === "confirmed") && (
-                  <div className="flex flex-wrap items-center justify-end gap-2 px-1">
-                    {booking.status === "pending" && (
-                      <Link
-                        href={`/booking/confirmation/${String(booking._id)}`}
-                        className="inline-flex items-center gap-1.5 rounded-full bg-[#22C7C7] px-4 py-2 text-xs font-semibold text-white transition hover:bg-[#1AB5B5]"
-                      >
-                        <CreditCard className="h-3.5 w-3.5" />
-                        {stripeReady ? "Complete payment" : "View booking"}
-                      </Link>
-                    )}
-                    <CancelBookingButton bookingId={String(booking._id)} />
-                  </div>
-                )}
-
-                {canReview && (
-                  <ReviewForm
-                    roomId={String(roomId)}
-                    roomName={(booking.room as { name?: string } | null)?.name ?? "Room"}
-                    bookingId={String(booking._id)}
-                  />
-                )}
-              </div>
-            );
-          })}
-        </div>
-      ) : (
-        <div className="flex flex-col items-center gap-6 rounded-2xl border border-[#E5E7EB] bg-white px-6 py-16 text-center shadow-sm">
-          <div className="flex h-20 w-20 items-center justify-center rounded-full border border-[#22C7C7]/20 bg-[#22C7C7]/10">
-            <BedDouble className="h-9 w-9 text-[#22C7C7]" />
-          </div>
-          <div className="max-w-sm space-y-2">
-            <h2 className="text-xl font-semibold text-[#111827]">No trips booked yet</h2>
-            <p className="text-sm text-[#6B7280]">
-              Your stay history will appear here once you make a booking. Find your perfect room and start planning your next trip.
-            </p>
-          </div>
-          <Link
-            href="/rooms"
-            className="inline-flex items-center gap-2 rounded-full bg-[#22C7C7] px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#1AB5B5]"
-          >
-            <BedDouble className="h-4 w-4" />
-            Explore rooms
-          </Link>
-        </div>
-      )}
+      {/* ── Interactive bookings view ───────────────────────── */}
+      <BookingsView
+        bookings={serialized}
+        reviewedRoomIds={[...reviewedRoomIds]}
+        razorpayReady={razorpayReady}
+      />
     </div>
   );
 }
