@@ -44,23 +44,6 @@ const destinations = [
   },
 ];
 
-const deals = [
-  {
-    image: "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=1600&q=80",
-    tag: "35% Discount",
-    title: "Summer escape deals for luxury beachfront stays",
-    description: "Reserve early and unlock breakfast, flexible check-in, and premium resort credit.",
-    cta: "Unlock Deal",
-  },
-  {
-    image: "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1600&q=80",
-    tag: "20% Discount",
-    title: "Book two nights and enjoy a complimentary room upgrade",
-    description: "Perfect for quick indulgent getaways, romantic escapes, and family breaks.",
-    cta: "View Offer",
-  },
-];
-
 const staticRooms: { image: string; name: string; slug?: string; location: string; rating: string; price: string; oldPrice: string; meta: string }[] = [
   {
     image: "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1400&q=80",
@@ -145,7 +128,7 @@ export default async function HomePage() {
     <div className="bg-[#F8F8F6]">
       <HeroSection />
       <DestinationSection destinations={destinations} />
-      <DealsSection deals={deals} />
+      <DealsSection />
       <TrendingRooms rooms={rooms} />
       <AmenitiesSection />
       <PromotionalBanner />
