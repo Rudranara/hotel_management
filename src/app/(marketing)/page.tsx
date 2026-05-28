@@ -1,48 +1,17 @@
-import { AmenitiesSection } from "@/components/home/amenities-section";
-import { BlogSection } from "@/components/home/blog-section";
-import { DealsSection } from "@/components/home/deals-section";
-import { DestinationSection } from "@/components/home/destination-section";
 import { HeroSection } from "@/components/home/hero-section";
-import { InstagramGallery } from "@/components/home/instagram-gallery";
-import { PromotionalBanner } from "@/components/home/promotional-banner";
+import { PopularDestinations, TrendingHotelsSection } from "@/components/home/featured-sections";
+import { FlightDealsSection, HolidayPackagesSection, AIRecommendedSection } from "@/components/home/travel-sections";
+import { DealsSection } from "@/components/home/deals-section";
 import { TestimonialSection } from "@/components/home/testimonial-section";
+import { BlogSection } from "@/components/home/blog-section";
+import { AmenitiesSection } from "@/components/home/amenities-section";
+import { PromotionalBanner } from "@/components/home/promotional-banner";
+import { InstagramGallery } from "@/components/home/instagram-gallery";
 import { TrendingRooms } from "@/components/home/trending-rooms";
+import { StatsSection } from "@/components/home/stats-section";
 import { getRooms } from "@/lib/dal";
 import { isDatabaseConfigured } from "@/lib/env";
 import { formatCurrency } from "@/utils/format";
-
-const destinations = [
-  {
-    image: "https://images.unsplash.com/photo-1577717903315-1691ae25ab3f?auto=format&fit=crop&w=1000&q=80",
-    name: "Puri",
-    price: "Rs 7,500",
-    rating: "4.8",
-  },
-  {
-    image: "https://images.unsplash.com/photo-1516483638261-f4dbaf036963?auto=format&fit=crop&w=1000&q=80",
-    name: "Bhubaneswar",
-    price: "Rs 6,200",
-    rating: "4.7",
-  },
-  {
-    image: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1000&q=80",
-    name: "Konark",
-    price: "Rs 8,400",
-    rating: "4.9",
-  },
-  {
-    image: "https://images.unsplash.com/photo-1518509562904-e7ef99cdcc86?auto=format&fit=crop&w=1000&q=80",
-    name: "Chilika",
-    price: "Rs 6,900",
-    rating: "4.8",
-  },
-  {
-    image: "https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?auto=format&fit=crop&w=1000&q=80",
-    name: "Gopalpur",
-    price: "Rs 7,100",
-    rating: "4.8",
-  },
-];
 
 const staticRooms: { image: string; name: string; slug?: string; location: string; rating: string; price: string; oldPrice: string; meta: string }[] = [
   {
@@ -84,6 +53,8 @@ const articles = [
     title: "How to choose the perfect luxury stay for a weekend escape",
     date: "May 19, 2026",
     time: "5 min read",
+    author: "Ananya Bose",
+    avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=80&q=80",
   },
   {
     image: "https://images.unsplash.com/photo-1527631746610-bca00a040d60?auto=format&fit=crop&w=1200&q=80",
@@ -91,6 +62,8 @@ const articles = [
     title: "Why coastal destinations are trending for premium travel now",
     date: "May 16, 2026",
     time: "6 min read",
+    author: "Rohan Verma",
+    avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=80&q=80",
   },
   {
     image: "https://images.unsplash.com/photo-1512918728675-ed5a9ecdebfd?auto=format&fit=crop&w=1200&q=80",
@@ -98,6 +71,8 @@ const articles = [
     title: "Modern hotel amenities guests now expect from top booking platforms",
     date: "May 11, 2026",
     time: "4 min read",
+    author: "Meera Pillai",
+    avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=80&q=80",
   },
 ];
 
@@ -125,9 +100,13 @@ export default async function HomePage() {
   }
 
   return (
-    <div className="bg-[#F8F8F6]">
+    <div className="bg-[#F7F9FC]">
       <HeroSection />
-      <DestinationSection destinations={destinations} />
+      <PopularDestinations />
+      <TrendingHotelsSection />
+      <FlightDealsSection />
+      <HolidayPackagesSection />
+      <AIRecommendedSection />
       <DealsSection />
       <TrendingRooms rooms={rooms} />
       <AmenitiesSection />
@@ -135,6 +114,7 @@ export default async function HomePage() {
       <BlogSection articles={articles} />
       <TestimonialSection />
       <InstagramGallery />
+      <StatsSection />
     </div>
   );
 }

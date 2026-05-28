@@ -1,5 +1,6 @@
 import { HomeNavbar } from "@/components/home/navbar";
 import { HomeFooter } from "@/components/home/footer";
+import { AIAssistant } from "@/components/ai/ai-assistant";
 
 export default function MarketingLayout({
   children,
@@ -11,6 +12,8 @@ export default function MarketingLayout({
       <HomeNavbar />
       <main>{children}</main>
       <HomeFooter />
+      <AIAssistant />
     </div>
   );
 }
+
