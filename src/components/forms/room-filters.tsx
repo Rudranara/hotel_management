@@ -20,18 +20,21 @@ interface RoomFiltersProps {
     availabilityStatus: string;
     rating: number;
     amenities: string[];
+    capacity?: number;
   }>;
+  initialType?: string;
 }
 
-export function RoomFilters({ rooms }: RoomFiltersProps) {
+export function RoomFilters({ rooms, initialType }: RoomFiltersProps) {
   const {
     query, setQuery,
     type, setType,
     maxPrice, setMaxPrice,
+    minCapacity, setMinCapacity,
     checkIn, setCheckIn,
     checkOut, setCheckOut,
     filteredRooms,
-  } = useRoomFilters(rooms);
+  } = useRoomFilters(rooms, initialType);
 
   const today = new Date().toISOString().split("T")[0];
 
@@ -43,7 +46,7 @@ export function RoomFilters({ rooms }: RoomFiltersProps) {
           <SlidersHorizontal size={15} />
           <span className="text-xs font-semibold uppercase tracking-[0.3em]">Filter Rooms</span>
         </div>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_1fr_1fr]">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_1fr_1fr_auto]">
           {/* Check-in */}
           <div>
             <label className="mb-1.5 block text-xs font-medium text-[#64748B]">Check-in</label>
@@ -86,6 +89,22 @@ export function RoomFilters({ rooms }: RoomFiltersProps) {
               </option>
             ))}
           </select>
+          {/* Capacity */}
+          <div>
+            <label className="mb-1.5 block text-xs font-medium text-[#64748B]">Guests</label>
+            <select
+              value={minCapacity}
+              onChange={(e) => setMinCapacity(Number(e.target.value))}
+              className="w-full rounded-xl border border-[#E5E7EB] bg-[#F7F9FC] px-4 py-3 text-[#1A2235] outline-none transition focus:border-[#0057D9] focus:ring-2 focus:ring-[#0057D9]/15"
+            >
+              <option value={1}>Any guests</option>
+              <option value={2}>2+ guests</option>
+              <option value={3}>3+ guests</option>
+              <option value={4}>4+ guests</option>
+              <option value={5}>5+ guests</option>
+              <option value={6}>6+ guests</option>
+            </select>
+          </div>
         </div>
 
         {/* Price range row */}
@@ -117,12 +136,13 @@ export function RoomFilters({ rooms }: RoomFiltersProps) {
             </span>
           )}
         </p>
-        {(query || type !== "All" || maxPrice < 60000 || checkIn || checkOut) && (
+        {(query || type !== "All" || maxPrice < 60000 || minCapacity > 1 || checkIn || checkOut) && (
           <button
             onClick={() => {
               setQuery("");
               setType("All");
               setMaxPrice(60000);
+              setMinCapacity(1);
               setCheckIn("");
               setCheckOut("");
             }}

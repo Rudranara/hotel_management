@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { MapPin, Star } from "lucide-react";
+import { MapPin, Star, Users } from "lucide-react";
 
 import { formatCurrency } from "@/utils/format";
 
@@ -16,6 +16,7 @@ interface RoomCardProps {
     availabilityStatus: string;
     rating: number;
     amenities: string[];
+    capacity?: number;
   };
 }
 
@@ -69,9 +70,17 @@ export function RoomCard({ room }: RoomCardProps) {
               {room.rating.toFixed(1)}
             </div>
           </div>
-          <p className="mt-1 flex items-center gap-1 text-sm text-[#64748B]">
-            <MapPin size={12} className="text-[#0057D9]" />
-            {room.location}
+          <p className="mt-1 flex items-center gap-3 text-sm text-[#64748B]">
+            <span className="flex items-center gap-1">
+              <MapPin size={12} className="text-[#0057D9]" />
+              {room.location}
+            </span>
+            {room.capacity && (
+              <span className="flex items-center gap-1">
+                <Users size={12} className="text-[#0057D9]" />
+                Up to {room.capacity}
+              </span>
+            )}
           </p>
         </div>
 

@@ -135,6 +135,12 @@ export function BookingsView({ bookings, reviewedRoomIds, razorpayReady }: Booki
                   </div>
                 )}
 
+                {(booking.status === "pending" || booking.status === "confirmed") && (
+                  <p className="px-1 text-right text-xs text-[#9CA3AF]">
+                    Review available after your stay is complete
+                  </p>
+                )}
+
                 {canReview && booking.room?._id && (
                   <ReviewForm
                     roomId={booking.room._id}

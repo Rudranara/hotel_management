@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { startTransition, useState } from "react";
 import toast from "react-hot-toast";
-import { CalendarDays, User, BedDouble, ChevronLeft, ChevronRight } from "lucide-react";
+import { CalendarDays, User, BedDouble, ChevronLeft, ChevronRight, Check, X, CheckCircle2 } from "lucide-react";
 
 import { apiRequest } from "@/api/client";
 
@@ -41,20 +41,24 @@ function fmtINR(n?: number) {
 export function AdminBookingManager({ bookings }: { bookings: AdminBooking[] }) {
   const router = useRouter();
   const [page, setPage] = useState(1);
+  const [loadingId, setLoadingId] = useState<string | null>(null);
 
   const totalPages = Math.ceil(bookings.length / PAGE_SIZE);
   const paginated = bookings.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   async function updateStatus(id: string, status: string) {
+    setLoadingId(id);
     try {
       await apiRequest(`/api/bookings/${id}`, {
         method: "PATCH",
         body: JSON.stringify({ status }),
       });
-      toast.success("Booking status updated.");
+      toast.success("Booking updated.");
       startTransition(() => router.refresh());
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Status update failed.");
+    } finally {
+      setLoadingId(null);
     }
   }
 
@@ -118,17 +122,54 @@ export function AdminBookingManager({ bookings }: { bookings: AdminBooking[] }) 
                     )}
                   </div>
 
-                  {/* Status select */}
-                  <select
-                    value={booking.status}
-                    onChange={(e) => void updateStatus(booking._id, e.target.value)}
-                    className="w-full shrink-0 rounded-xl border border-[#E5E7EB] bg-white px-4 py-2.5 text-sm text-[#111827] outline-none focus:border-[#22C7C7] focus:ring-2 focus:ring-[#22C7C7]/20 lg:w-40"
-                  >
-                    <option value="pending">Pending</option>
-                    <option value="confirmed">Confirmed</option>
-                    <option value="cancelled">Cancelled</option>
-                    <option value="completed">Completed</option>
-                  </select>
+                  {/* Action buttons */}
+                  <div className="flex shrink-0 flex-wrap items-center gap-2">
+                    {booking.status === "pending" && (
+                      <>
+                        <button
+                          disabled={loadingId === booking._id}
+                          onClick={() => void updateStatus(booking._id, "confirmed")}
+                          className="flex items-center gap-1.5 rounded-full bg-emerald-500 px-4 py-2 text-xs font-bold text-white shadow-sm transition hover:bg-emerald-600 disabled:opacity-60"
+                        >
+                          <Check className="h-3.5 w-3.5" />
+                          Approve
+                        </button>
+                        <button
+                          disabled={loadingId === booking._id}
+                          onClick={() => void updateStatus(booking._id, "cancelled")}
+                          className="flex items-center gap-1.5 rounded-full border border-red-200 bg-red-50 px-4 py-2 text-xs font-bold text-red-600 transition hover:bg-red-100 disabled:opacity-60"
+                        >
+                          <X className="h-3.5 w-3.5" />
+                          Reject
+                        </button>
+                      </>
+                    )}
+                    {booking.status === "confirmed" && (
+                      <>
+                        <button
+                          disabled={loadingId === booking._id}
+                          onClick={() => void updateStatus(booking._id, "completed")}
+                          className="flex items-center gap-1.5 rounded-full bg-[#22C7C7] px-4 py-2 text-xs font-bold text-white shadow-sm transition hover:bg-[#1AB5B5] disabled:opacity-60"
+                        >
+                          <CheckCircle2 className="h-3.5 w-3.5" />
+                          Complete
+                        </button>
+                        <button
+                          disabled={loadingId === booking._id}
+                          onClick={() => void updateStatus(booking._id, "cancelled")}
+                          className="flex items-center gap-1.5 rounded-full border border-red-200 bg-red-50 px-4 py-2 text-xs font-bold text-red-600 transition hover:bg-red-100 disabled:opacity-60"
+                        >
+                          <X className="h-3.5 w-3.5" />
+                          Cancel
+                        </button>
+                      </>
+                    )}
+                    {(booking.status === "cancelled" || booking.status === "completed") && (
+                      <span className={`rounded-full border px-3 py-1.5 text-xs font-semibold capitalize ${cfg.badge}`}>
+                        {cfg.label}
+                      </span>
+                    )}
+                  </div>
                 </div>
               );
             })}

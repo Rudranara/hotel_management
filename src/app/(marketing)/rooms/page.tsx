@@ -21,6 +21,7 @@ const DEMO_ROOMS = [
     type: "Deluxe",
     location: "Puri, Odisha",
     price: 12500,
+    capacity: 2,
     images: ["https://images.unsplash.com/photo-1631049307264-da0ec9d70304?auto=format&fit=crop&w=1200&q=80"],
     availabilityStatus: "available",
     rating: 4.8,
@@ -33,6 +34,7 @@ const DEMO_ROOMS = [
     type: "Villa",
     location: "Bhubaneswar, Odisha",
     price: 28000,
+    capacity: 4,
     images: ["https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=1200&q=80"],
     availabilityStatus: "available",
     rating: 4.9,
@@ -45,6 +47,7 @@ const DEMO_ROOMS = [
     type: "Suite",
     location: "Konark, Odisha",
     price: 45000,
+    capacity: 3,
     images: ["https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1200&q=80"],
     availabilityStatus: "booked",
     rating: 5.0,
@@ -57,6 +60,7 @@ const DEMO_ROOMS = [
     type: "Cabin",
     location: "Chilika, Odisha",
     price: 8500,
+    capacity: 2,
     images: ["https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?auto=format&fit=crop&w=1200&q=80"],
     availabilityStatus: "available",
     rating: 4.6,
@@ -69,6 +73,7 @@ const DEMO_ROOMS = [
     type: "Family",
     location: "Gopalpur, Odisha",
     price: 18000,
+    capacity: 6,
     images: ["https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=1200&q=80"],
     availabilityStatus: "available",
     rating: 4.7,
@@ -81,6 +86,7 @@ const DEMO_ROOMS = [
     type: "Suite",
     location: "Puri, Odisha",
     price: 32000,
+    capacity: 3,
     images: ["https://images.unsplash.com/photo-1566665797739-1674de7a421a?auto=format&fit=crop&w=1200&q=80"],
     availabilityStatus: "available",
     rating: 4.9,
@@ -88,7 +94,12 @@ const DEMO_ROOMS = [
   },
 ];
 
-export default async function RoomsPage() {
+export default async function RoomsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ type?: string }>;
+}) {
+  const { type: initialType } = await searchParams;
   const dbReady = isDatabaseConfigured();
   const dbRooms = dbReady ? await getRooms() : [];
   const rooms = dbReady
@@ -161,7 +172,7 @@ export default async function RoomsPage() {
       {/* Filters + rooms grid */}
       <section className="bg-[#F7F9FC] py-10 sm:py-12 lg:py-16">
         <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
-          <RoomFilters rooms={rooms} />
+          <RoomFilters rooms={rooms} initialType={initialType} />
         </div>
       </section>
     </div>

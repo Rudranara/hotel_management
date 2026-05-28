@@ -120,7 +120,7 @@ export default async function DealDetailPage({ params }: Props) {
               </div>
 
               <Link
-                href="/rooms"
+                href={`/rooms?type=${encodeURIComponent(deal.roomType)}`}
                 className="block w-full rounded-full bg-[#FF6B35] px-6 py-3.5 text-center text-sm font-bold text-white shadow-[0_4px_20px_rgba(255,107,53,0.35)] transition hover:bg-[#E55A24]"
               >
                 Browse eligible rooms

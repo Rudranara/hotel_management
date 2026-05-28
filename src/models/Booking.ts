@@ -10,6 +10,7 @@ export interface BookingDocument {
   totalPrice: number;
   status: "pending" | "confirmed" | "cancelled" | "completed";
   specialRequests?: string;
+  razorpayPaymentId?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -29,6 +30,7 @@ const bookingSchema = new Schema<BookingDocument>(
       default: "pending",
     },
     specialRequests: { type: String, default: "" },
+    razorpayPaymentId: { type: String },
   },
   { timestamps: true },
 );

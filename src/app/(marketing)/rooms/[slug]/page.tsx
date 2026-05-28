@@ -449,6 +449,20 @@ export default async function RoomDetailsPage({
                     <p className="text-[#9CA3AF]">No reviews yet. Be the first to share your experience.</p>
                   )}
                 </div>
+
+                {/* Review CTA */}
+                <div className="mt-6 flex items-start gap-3 rounded-2xl border border-[#DBEAFE] bg-[#EEF4FF] p-4">
+                  <Star size={16} className="mt-0.5 shrink-0 fill-amber-400 text-amber-400" />
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-[#1A2235]">Stayed here? Share your experience</p>
+                    <p className="mt-0.5 text-xs text-[#475569]">
+                      Reviews are available for completed stays.{" "}
+                      <a href="/dashboard/bookings" className="font-medium text-[#0057D9] hover:underline">
+                        Go to your bookings →
+                      </a>
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
 

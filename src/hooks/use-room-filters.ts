@@ -2,12 +2,14 @@
 
 import { useDeferredValue, useEffect, useState } from "react";
 
-export function useRoomFilters<T extends { _id: unknown; name: string; type: string; location: string; price: number }>(
+export function useRoomFilters<T extends { _id: unknown; name: string; type: string; location: string; price: number; capacity?: number }>(
   rooms: T[],
+  initialType = "All",
 ) {
   const [query, setQuery] = useState("");
-  const [type, setType] = useState("All");
+  const [type, setType] = useState(initialType);
   const [maxPrice, setMaxPrice] = useState(60000);
+  const [minCapacity, setMinCapacity] = useState(1);
   const [checkIn, setCheckIn] = useState("");
   const [checkOut, setCheckOut] = useState("");
   const [unavailableIds, setUnavailableIds] = useState<Set<string>>(new Set());
@@ -45,9 +47,10 @@ export function useRoomFilters<T extends { _id: unknown; name: string; type: str
       `${room.name} ${room.location}`.toLowerCase().includes(deferredQuery.toLowerCase());
     const matchesType = type === "All" || room.type === type;
     const matchesPrice = room.price <= maxPrice;
+    const matchesCapacity = minCapacity <= 1 || (room.capacity ?? 1) >= minCapacity;
     const isAvailable = !unavailableIds.has(String(room._id));
 
-    return matchesQuery && matchesType && matchesPrice && isAvailable;
+    return matchesQuery && matchesType && matchesPrice && matchesCapacity && isAvailable;
   });
 
   return {
@@ -57,6 +60,8 @@ export function useRoomFilters<T extends { _id: unknown; name: string; type: str
     setType,
     maxPrice,
     setMaxPrice,
+    minCapacity,
+    setMinCapacity,
     checkIn,
     setCheckIn,
     checkOut,

@@ -75,11 +75,13 @@ export async function getRooms(filters?: { query?: string; type?: string; maxPri
 
   const rooms = await Room.find(query).sort({ featured: -1, createdAt: -1 }).lean();
 
-  // Compute live availability: "booked" if a confirmed/active booking hasn't ended yet
+  // Compute live availability: "booked" only if a confirmed booking is active RIGHT NOW
+  // (checkIn <= today < checkOut).  Future-only bookings leave the room "available".
   const today = new Date();
   const bookedRoomIds = await Booking.distinct("room", {
-    status: { $in: ["confirmed"] },
-    checkOut: { $gt: today },
+    status: "confirmed",
+    checkIn:  { $lte: today },
+    checkOut: { $gt:  today },
   });
   const bookedSet = new Set(bookedRoomIds.map(String));
 
@@ -107,7 +109,7 @@ export async function getRoomBySlug(slug: string) {
       .lean(),
     Booking.find({
       room: room._id,
-      status: { $in: ["confirmed", "pending"] },
+      status: "confirmed",
       checkOut: { $gt: today },
     })
       .select("checkIn checkOut")
@@ -123,7 +125,11 @@ export async function getRoomBySlug(slug: string) {
   return {
     room: {
       ...room,
-      availabilityStatus: upcomingBookings.length > 0 ? "booked" : "available",
+      // "booked" only when a confirmed booking covers today
+    availabilityStatus:
+      upcomingBookings.some((b) => new Date(b.checkIn as Date) <= today && new Date(b.checkOut as Date) > today)
+        ? "booked"
+        : "available",
     },
     reviews,
     bookedRanges,
@@ -137,7 +143,7 @@ export async function getRoomBookedRanges(roomId: string): Promise<{ from: strin
 
   const bookings = await Booking.find({
     room: roomId,
-    status: { $in: ["confirmed", "pending"] },
+    status: "confirmed",
     checkOut: { $gt: today },
   })
     .select("checkIn checkOut")

@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { startTransition, useState } from "react";
 import toast from "react-hot-toast";
-import { MapPin, Users, Star, BadgeCheck, ChevronLeft, ChevronRight } from "lucide-react";
+import { MapPin, Users, Star, BadgeCheck, ChevronLeft, ChevronRight, Plus, X } from "lucide-react";
 
 import { apiRequest } from "@/api/client";
 import { ROOM_AMENITIES, ROOM_TYPES } from "@/lib/constants";
@@ -35,21 +35,29 @@ export function AdminRoomManager({ rooms }: AdminRoomManagerProps) {
   const [editingRoom, setEditingRoom] = useState<AdminRoomManagerProps["rooms"][number] | null>(null);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
+  const [newImageUrl, setNewImageUrl] = useState("");
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   const totalPages = Math.ceil(rooms.length / PAGE_SIZE);
   const paginated = rooms.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   function beginCreate() {
     setEditingRoom(null);
+    setImageUrls([]);
+    setNewImageUrl("");
     setOpen(true);
   }
 
   function beginEdit(room: AdminRoomManagerProps["rooms"][number]) {
     setEditingRoom(room);
+    setImageUrls(room.images);
+    setNewImageUrl("");
     setOpen(true);
   }
 
   async function handleDelete(id: string) {
+    setConfirmDeleteId(null);
     try {
       await apiRequest(`/api/rooms/${id}`, { method: "DELETE" });
       toast.success("Room deleted.");
@@ -191,12 +199,30 @@ export function AdminRoomManager({ rooms }: AdminRoomManagerProps) {
                     >
                       Edit
                     </button>
-                    <button
-                      onClick={() => void handleDelete(room._id)}
-                      className="rounded-full border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-600 transition hover:bg-red-100"
-                    >
-                      Delete
-                    </button>
+                    {confirmDeleteId === room._id ? (
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-xs text-[#6B7280]">Delete?</span>
+                        <button
+                          onClick={() => void handleDelete(room._id)}
+                          className="rounded-full bg-red-500 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-red-600"
+                        >
+                          Yes
+                        </button>
+                        <button
+                          onClick={() => setConfirmDeleteId(null)}
+                          className="rounded-full border border-[#E5E7EB] px-3 py-1.5 text-xs font-semibold text-[#374151] transition hover:bg-[#F1F5F9]"
+                        >
+                          No
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => setConfirmDeleteId(room._id)}
+                        className="rounded-full border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-600 transition hover:bg-red-100"
+                      >
+                        Delete
+                      </button>
+                    )}
                   </div>
                 </div>
               );
@@ -295,13 +321,71 @@ export function AdminRoomManager({ rooms }: AdminRoomManagerProps) {
             className="rounded-xl border border-[#E5E7EB] bg-white px-4 py-3 text-[#111827] outline-none focus:border-[#22C7C7] focus:ring-2 focus:ring-[#22C7C7]/20"
           />
 
-          <textarea
-            name="images"
-            rows={4}
-            defaultValue={editingRoom?.images.join("\n") ?? ""}
-            placeholder="One image URL per line"
-            className="rounded-xl border border-[#E5E7EB] bg-white px-4 py-3 text-[#111827] outline-none focus:border-[#22C7C7] focus:ring-2 focus:ring-[#22C7C7]/20"
-          />
+          {/* Image URL manager */}
+          <div className="space-y-3">
+            <p className="text-xs font-semibold uppercase tracking-wider text-[#6B7280]">Room images</p>
+            <div className="flex gap-2">
+              <input
+                value={newImageUrl}
+                onChange={(e) => setNewImageUrl(e.target.value)}
+                placeholder="Paste an image URL and click Add"
+                className="flex-1 rounded-xl border border-[#E5E7EB] bg-white px-4 py-3 text-sm text-[#111827] outline-none focus:border-[#22C7C7] focus:ring-2 focus:ring-[#22C7C7]/20"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    const url = newImageUrl.trim();
+                    if (url) { setImageUrls((p) => [...p, url]); setNewImageUrl(""); }
+                  }
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  const url = newImageUrl.trim();
+                  if (url) { setImageUrls((p) => [...p, url]); setNewImageUrl(""); }
+                }}
+                className="flex items-center gap-1.5 rounded-xl bg-[#22C7C7] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#1AB5B5]"
+              >
+                <Plus className="h-4 w-4" />
+                Add
+              </button>
+            </div>
+            {imageUrls.length > 0 ? (
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                {imageUrls.map((url, i) => (
+                  <div key={i} className="group relative overflow-hidden rounded-xl border border-[#E5E7EB]">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={url}
+                      alt=""
+                      className="h-24 w-full object-cover"
+                      onError={(e) => {
+                        (e.currentTarget as HTMLImageElement).style.background = "#F1F5F9";
+                        (e.currentTarget as HTMLImageElement).alt = "Invalid URL";
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setImageUrls((p) => p.filter((_, j) => j !== i))}
+                      className="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-black/60 text-white opacity-0 transition group-hover:opacity-100"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                    {i === 0 && (
+                      <span className="absolute bottom-1.5 left-1.5 rounded bg-black/60 px-1.5 py-0.5 text-[10px] font-medium text-white">
+                        Cover
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="rounded-xl border border-dashed border-[#E5E7EB] px-4 py-6 text-center text-sm text-[#9CA3AF]">
+                No images added. Paste a URL above and click Add.
+              </p>
+            )}
+            <input type="hidden" name="images" value={imageUrls.join("\n")} />
+          </div>
 
           <div className="grid gap-2 md:grid-cols-2">
             {ROOM_AMENITIES.map((amenity) => (

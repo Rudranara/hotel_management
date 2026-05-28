@@ -6,6 +6,8 @@ export type Deal = {
   title: string;
   description: string;
   cta: string;
+  /** Room type keyword used to pre-filter /rooms page */
+  roomType: string;
   /** Full detail shown on /deals/[slug] */
   heroImage: string;
   longDescription: string;
@@ -23,6 +25,7 @@ export const DEALS: Deal[] = [
       "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=2400&q=80",
     tag: "35% Discount",
     discount: 35,
+    roomType: "Deluxe",
     title: "Summer escape deals for luxury beachfront stays",
     description:
       "Reserve early and unlock breakfast, flexible check-in, and premium resort credit.",
@@ -54,6 +57,7 @@ export const DEALS: Deal[] = [
       "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=2400&q=80",
     tag: "20% Discount",
     discount: 20,
+    roomType: "Suite",
     title: "Book two nights and enjoy a complimentary room upgrade",
     description:
       "Perfect for quick indulgent getaways, romantic escapes, and family breaks.",
