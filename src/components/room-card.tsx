@@ -3,6 +3,7 @@ import Link from "next/link";
 import { MapPin, Star, Users } from "lucide-react";
 
 import { formatCurrency } from "@/utils/format";
+import { WishlistButton } from "@/components/wishlist-button";
 
 interface RoomCardProps {
   room: {
@@ -15,12 +16,14 @@ interface RoomCardProps {
     images: string[];
     availabilityStatus: string;
     rating: number;
+    reviewCount?: number;
     amenities: string[];
     capacity?: number;
   };
+  isSaved?: boolean;
 }
 
-export function RoomCard({ room }: RoomCardProps) {
+export function RoomCard({ room, isSaved = false }: RoomCardProps) {
   const available = room.availabilityStatus === "available";
 
   return (
@@ -52,11 +55,9 @@ export function RoomCard({ room }: RoomCardProps) {
           </span>
         </div>
 
-        {/* SAVE badge */}
+        {/* Wishlist button */}
         <div className="absolute right-3 top-3">
-          <span className="rounded-full bg-[#FF6B35] px-2.5 py-1 text-[11px] font-bold text-white shadow-sm">
-            SAVE 15%
-          </span>
+          <WishlistButton roomId={room._id} initialSaved={isSaved} />
         </div>
       </div>
 
@@ -68,6 +69,9 @@ export function RoomCard({ room }: RoomCardProps) {
             <div className="flex shrink-0 items-center gap-1 rounded-full bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-600">
               <Star size={11} className="fill-amber-400 text-amber-400" />
               {room.rating.toFixed(1)}
+              {room.reviewCount != null && room.reviewCount > 0 && (
+                <span className="font-normal text-amber-500/80">({room.reviewCount})</span>
+              )}
             </div>
           </div>
           <p className="mt-1 flex items-center gap-3 text-sm text-[#64748B]">

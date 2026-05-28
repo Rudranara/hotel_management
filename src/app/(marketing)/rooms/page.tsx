@@ -1,8 +1,10 @@
 import Image from "next/image";
 import { ShieldCheck, Star, MapPin, Zap } from "lucide-react";
 
-import { getRooms } from "@/lib/dal";
+import { getRooms, getCurrentUser } from "@/lib/dal";
 import { isDatabaseConfigured } from "@/lib/env";
+import { connectToDatabase } from "@/lib/mongodb";
+import User from "@/models/User";
 
 import { RoomFilters } from "@/components/forms/room-filters";
 
@@ -25,6 +27,7 @@ const DEMO_ROOMS = [
     images: ["https://images.unsplash.com/photo-1631049307264-da0ec9d70304?auto=format&fit=crop&w=1200&q=80"],
     availabilityStatus: "available",
     rating: 4.8,
+    reviewCount: 42,
     amenities: ["Ocean View", "Private Balcony", "Breakfast Included"],
   },
   {
@@ -38,6 +41,7 @@ const DEMO_ROOMS = [
     images: ["https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=1200&q=80"],
     availabilityStatus: "available",
     rating: 4.9,
+    reviewCount: 31,
     amenities: ["Private Balcony", "Mini Bar", "Airport Pickup"],
   },
   {
@@ -51,6 +55,7 @@ const DEMO_ROOMS = [
     images: ["https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1200&q=80"],
     availabilityStatus: "booked",
     rating: 5.0,
+    reviewCount: 18,
     amenities: ["Ocean View", "Breakfast Included", "Mini Bar"],
   },
   {
@@ -64,6 +69,7 @@ const DEMO_ROOMS = [
     images: ["https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?auto=format&fit=crop&w=1200&q=80"],
     availabilityStatus: "available",
     rating: 4.6,
+    reviewCount: 27,
     amenities: ["Wi-Fi", "Air Conditioning", "Workspace"],
   },
   {
@@ -77,6 +83,7 @@ const DEMO_ROOMS = [
     images: ["https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=1200&q=80"],
     availabilityStatus: "available",
     rating: 4.7,
+    reviewCount: 53,
     amenities: ["Ocean View", "Breakfast Included", "Air Conditioning"],
   },
   {
@@ -90,6 +97,7 @@ const DEMO_ROOMS = [
     images: ["https://images.unsplash.com/photo-1566665797739-1674de7a421a?auto=format&fit=crop&w=1200&q=80"],
     availabilityStatus: "available",
     rating: 4.9,
+    reviewCount: 39,
     amenities: ["Private Balcony", "Mini Bar", "Airport Pickup"],
   },
 ];
@@ -97,14 +105,29 @@ const DEMO_ROOMS = [
 export default async function RoomsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ type?: string }>;
+  searchParams: Promise<{ type?: string; checkIn?: string; checkOut?: string; location?: string; guests?: string }>;
 }) {
-  const { type: initialType } = await searchParams;
+  const { type: initialType, checkIn, checkOut, location, guests } = await searchParams;
   const dbReady = isDatabaseConfigured();
   const dbRooms = dbReady ? await getRooms() : [];
   const rooms = dbReady
     ? dbRooms.map((room) => ({ ...room, _id: String(room._id) }))
     : DEMO_ROOMS;
+
+  // Fetch the current user's wishlist (empty set if not logged in)
+  let savedRoomIds = new Set<string>();
+  if (dbReady) {
+    try {
+      const user = await getCurrentUser();
+      if (user) {
+        await connectToDatabase();
+        const fresh = await User.findById(user._id).select("wishlist").lean();
+        if (fresh) savedRoomIds = new Set(fresh.wishlist.map(String));
+      }
+    } catch {
+      // not critical — wishlist just won't be pre-populated
+    }
+  }
 
   return (
     <div className="bg-white">
@@ -172,7 +195,15 @@ export default async function RoomsPage({
       {/* Filters + rooms grid */}
       <section className="bg-[#F7F9FC] py-10 sm:py-12 lg:py-16">
         <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
-          <RoomFilters rooms={rooms} initialType={initialType} />
+          <RoomFilters
+            rooms={rooms}
+            savedRoomIds={savedRoomIds}
+            initialType={initialType}
+            initialCheckIn={checkIn}
+            initialCheckOut={checkOut}
+            initialLocation={location}
+            initialGuests={guests ? Number(guests) : undefined}
+          />
         </div>
       </section>
     </div>

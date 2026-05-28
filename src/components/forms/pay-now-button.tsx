@@ -42,9 +42,12 @@ function loadRazorpayScript(): Promise<boolean> {
 export function PayNowButton({
   bookingId,
   amount,
+  finalAmount,
 }: {
   bookingId: string;
   amount: string;
+  /** Discounted total in INR (whole rupees). If provided, Razorpay charges this instead of the booking price. */
+  finalAmount?: number;
 }) {
   const [loading, setLoading] = useState(false);
 
@@ -57,7 +60,7 @@ export function PayNowButton({
       const res = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ bookingId }),
+        body: JSON.stringify({ bookingId, finalAmount }),
       });
       const data = (await res.json()) as {
         orderId?: string;

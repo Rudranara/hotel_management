@@ -157,3 +157,47 @@ export async function sendBookingCancelledEmail(
     console.error("[email] Failed to send cancellation email:", err);
   }
 }
+
+function passwordResetHtml(name: string, resetUrl: string) {
+  return `
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>Reset your password — Huts4u</title></head>
+<body style="font-family:system-ui,sans-serif;background:#F1F5F9;padding:40px 16px;margin:0">
+  <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:16px;overflow:hidden;border:1px solid #E5E7EB">
+    <div style="background:#0057D9;padding:32px 40px">
+      <p style="margin:0;color:#fff;font-size:22px;font-weight:700">Huts4u</p>
+      <p style="margin:8px 0 0;color:rgba(255,255,255,0.8);font-size:14px">Password Reset Request</p>
+    </div>
+    <div style="padding:32px 40px">
+      <p style="color:#111827;font-size:16px">Hi ${name},</p>
+      <p style="color:#6B7280;line-height:1.6">We received a request to reset your password. Click the button below to set a new one. This link expires in <strong>1 hour</strong>.</p>
+      <div style="text-align:center;margin:32px 0">
+        <a href="${resetUrl}" style="display:inline-block;background:#0057D9;color:#fff;font-weight:700;font-size:15px;padding:14px 32px;border-radius:100px;text-decoration:none">Reset Password</a>
+      </div>
+      <p style="color:#9CA3AF;font-size:13px">If you didn't request this, you can safely ignore this email. Your password won't change.</p>
+      <p style="color:#9CA3AF;font-size:12px;word-break:break-all">Or copy this link: ${resetUrl}</p>
+      <p style="color:#9CA3AF;font-size:13px;margin-top:32px;border-top:1px solid #E5E7EB;padding-top:20px">© Huts4u · Odisha, India</p>
+    </div>
+  </div>
+</body>
+</html>`;
+}
+
+export async function sendPasswordResetEmail(to: string, name: string, resetUrl: string) {
+  if (!isEmailConfigured()) return;
+
+  try {
+    const { Resend } = await import("resend");
+    const resend = new Resend(env.resendApiKey);
+
+    await resend.emails.send({
+      from: env.resendFrom,
+      to,
+      subject: "Reset your Huts4u password",
+      html: passwordResetHtml(name, resetUrl),
+    });
+  } catch (err) {
+    console.error("[email] Failed to send password reset email:", err);
+  }
+}

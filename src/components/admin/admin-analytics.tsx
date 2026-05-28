@@ -1,5 +1,14 @@
 "use client";
 
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
 import { TrendingUp } from "lucide-react";
 
 interface RevenueDay {
@@ -37,9 +46,7 @@ export function AdminAnalytics({
   totalRevenue,
   occupancyRate,
 }: AdminAnalyticsProps) {
-  const maxRevenue = Math.max(...revenueByDay.map((d) => d.revenue), 1);
-
-  // Fill last 14 days for the mini-chart
+  // Fill last 14 days for the chart
   const days: { label: string; revenue: number; count: number }[] = [];
   for (let i = 13; i >= 0; i--) {
     const d = new Date(Date.now() - i * 86400000);
@@ -67,34 +74,53 @@ export function AdminAnalytics({
           </div>
         </div>
 
-        {/* Bar chart */}
-        <div className="flex h-32 items-end gap-1">
-          {days.map((day) => {
-            const heightPct = maxRevenue > 0 ? (day.revenue / maxRevenue) * 100 : 0;
-            return (
-              <div
-                key={day.label}
-                className="group relative flex flex-1 flex-col items-center justify-end"
-              >
-                <div
-                  className="w-full rounded-t-sm bg-[#22C7C7]/70 transition-all group-hover:bg-[#22C7C7]"
-                  style={{ height: `${Math.max(heightPct, day.revenue > 0 ? 4 : 0)}%` }}
-                />
-                {/* Tooltip */}
-                {day.revenue > 0 && (
-                  <div className="pointer-events-none absolute bottom-full mb-1 hidden rounded-lg border border-[#E5E7EB] bg-white px-2 py-1 text-center text-xs shadow-md group-hover:block z-10">
-                    <p className="font-semibold text-[#111827]">{formatINR(day.revenue)}</p>
-                    <p className="text-[#9CA3AF]">{day.count} booking{day.count !== 1 ? "s" : ""}</p>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-        <div className="mt-2 flex justify-between text-xs text-[#D1D5DB]">
-          <span>{days[0]?.label}</span>
-          <span>{days[days.length - 1]?.label}</span>
-        </div>
+        <ResponsiveContainer width="100%" height={200}>
+          <AreaChart data={days} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
+            <defs>
+              <linearGradient id="revenueGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%"  stopColor="#22C7C7" stopOpacity={0.25} />
+                <stop offset="95%" stopColor="#22C7C7" stopOpacity={0} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
+            <XAxis
+              dataKey="label"
+              tick={{ fontSize: 11, fill: "#9CA3AF" }}
+              tickLine={false}
+              axisLine={false}
+              interval={1}
+            />
+            <YAxis
+              tickFormatter={(v: number) => formatINR(v)}
+              tick={{ fontSize: 11, fill: "#9CA3AF" }}
+              tickLine={false}
+              axisLine={false}
+              width={52}
+            />
+            <Tooltip
+              contentStyle={{
+                borderRadius: "12px",
+                border: "1px solid #E5E7EB",
+                boxShadow: "0 4px 16px rgba(0,0,0,0.08)",
+                fontSize: 12,
+              }}
+              formatter={(value, _name, props) => {
+                const count = (props.payload as { count?: number } | undefined)?.count ?? 0;
+                return [`${formatINR(Number(value))} · ${count} booking${count !== 1 ? "s" : ""}`, "Revenue"];
+              }}
+              labelStyle={{ fontWeight: 600, color: "#111827" }}
+            />
+            <Area
+              type="monotone"
+              dataKey="revenue"
+              stroke="#22C7C7"
+              strokeWidth={2.5}
+              fill="url(#revenueGrad)"
+              dot={false}
+              activeDot={{ r: 5, fill: "#22C7C7", stroke: "#fff", strokeWidth: 2 }}
+            />
+          </AreaChart>
+        </ResponsiveContainer>
       </div>
 
       {/* Upcoming check-ins */}

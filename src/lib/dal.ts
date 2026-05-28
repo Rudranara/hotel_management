@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import { connectToDatabase } from "@/lib/mongodb";
 import Booking from "@/models/Booking";
+import Coupon from "@/models/Coupon";
 import Review from "@/models/Review";
 import Room from "@/models/Room";
 import User from "@/models/User";
@@ -99,8 +100,8 @@ export async function getRoomBySlug(slug: string) {
     return null;
   }
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  // Use current moment (UTC) — avoids local-timezone midnight offset issues
+  const now = new Date();
 
   const [reviews, upcomingBookings] = await Promise.all([
     Review.find({ room: room._id })
@@ -110,7 +111,7 @@ export async function getRoomBySlug(slug: string) {
     Booking.find({
       room: room._id,
       status: "confirmed",
-      checkOut: { $gt: today },
+      checkOut: { $gt: now },
     })
       .select("checkIn checkOut")
       .sort({ checkIn: 1 })
@@ -125,9 +126,9 @@ export async function getRoomBySlug(slug: string) {
   return {
     room: {
       ...room,
-      // "booked" only when a confirmed booking covers today
+      // "booked" only when a confirmed booking covers the current moment
     availabilityStatus:
-      upcomingBookings.some((b) => new Date(b.checkIn as Date) <= today && new Date(b.checkOut as Date) > today)
+      upcomingBookings.some((b) => (b.checkIn as Date) <= now && (b.checkOut as Date) > now)
         ? "booked"
         : "available",
     },
@@ -138,13 +139,12 @@ export async function getRoomBySlug(slug: string) {
 
 export async function getRoomBookedRanges(roomId: string): Promise<{ from: string; to: string }[]> {
   await connectToDatabase();
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  const now = new Date();
 
   const bookings = await Booking.find({
     room: roomId,
     status: "confirmed",
-    checkOut: { $gt: today },
+    checkOut: { $gt: now },
   })
     .select("checkIn checkOut")
     .sort({ checkIn: 1 })
@@ -159,21 +159,27 @@ export async function getRoomBookedRanges(roomId: string): Promise<{ from: strin
 export async function getDashboardData(userId: string) {
   await connectToDatabase();
 
-  const [bookings, reviews] = await Promise.all([
+  const [bookings, reviews, userWithWishlist] = await Promise.all([
     Booking.find({ user: userId })
       .populate("room", "name type images location price")
       .sort({ createdAt: -1 })
       .lean(),
     Review.find({ user: userId }).populate("room", "name").sort({ createdAt: -1 }).lean(),
+    User.findById(userId)
+      .select("wishlist")
+      .populate("wishlist", "_id name slug type location price images rating amenities capacity availabilityStatus")
+      .lean(),
   ]);
 
-  return { bookings, reviews };
+  const savedRooms = (userWithWishlist?.wishlist ?? []) as unknown[];
+
+  return { bookings, reviews, savedRooms };
 }
 
 export async function getAdminDashboardData() {
   await connectToDatabase();
 
-  const [rooms, bookings, users] = await Promise.all([
+  const [rooms, bookings, users, coupons] = await Promise.all([
     Room.find().sort({ createdAt: -1 }).lean(),
     Booking.find()
       .populate("room", "name type")
@@ -181,6 +187,7 @@ export async function getAdminDashboardData() {
       .sort({ createdAt: -1 })
       .lean(),
     User.find().select("-password").sort({ createdAt: -1 }).lean(),
+    Coupon.find().sort({ createdAt: -1 }).lean(),
   ]);
 
   // Analytics: daily revenue for last 30 days
@@ -209,7 +216,7 @@ export async function getAdminDashboardData() {
     .limit(10)
     .lean();
 
-  return { rooms, bookings, users, revenueByDay, upcomingCheckIns };
+  return { rooms, bookings, users, coupons, revenueByDay, upcomingCheckIns };
 }
 
 export async function getBookingById(id: string, userId?: string) {

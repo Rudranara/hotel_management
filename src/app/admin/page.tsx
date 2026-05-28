@@ -7,6 +7,7 @@ import { AdminBookingManager } from "@/components/admin/admin-booking-manager";
 import { AdminRoomManager } from "@/components/admin/admin-room-manager";
 import { AdminUserManager } from "@/components/admin/admin-user-manager";
 import { AdminAnalytics } from "@/components/admin/admin-analytics";
+import { AdminCouponManager } from "@/components/admin/admin-coupon-manager";
 
 export const dynamic = "force-dynamic";
 
@@ -14,7 +15,7 @@ export const metadata = { title: "Admin | Huts4u" };
 
 export default async function AdminPage() {
   const user = await requireAdmin();
-  const { rooms, bookings, users, revenueByDay = [], upcomingCheckIns = [] } = await getAdminDashboardData();
+  const { rooms, bookings, users, coupons = [], revenueByDay = [], upcomingCheckIns = [] } = await getAdminDashboardData();
 
   const totalRevenue = (revenueByDay as { revenue: number }[]).reduce((s, d) => s + d.revenue, 0);
   const confirmedBookings = bookings.filter((b) => ["confirmed"].includes((b as { status: string }).status));
@@ -105,6 +106,7 @@ export default async function AdminPage() {
         <div id="rooms"><AdminRoomManager rooms={rooms.map((room) => ({ ...room, _id: String(room._id) }))} /></div>
         <div id="bookings"><AdminBookingManager bookings={bookings.map((booking) => ({ ...booking, _id: String(booking._id) })) as never} /></div>
         <div id="users"><AdminUserManager users={users.map((entry) => ({ ...entry, _id: String(entry._id) })) as never} /></div>
+        <div id="coupons"><AdminCouponManager coupons={coupons.map((c) => ({ ...c, _id: String(c._id) })) as never} /></div>
       </div>
     </div>
   );

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getSession } from "@/lib/auth";
 
 import { LogoutButton } from "@/components/forms/logout-button";
+import { MobileMenu } from "@/components/layout/mobile-menu";
 
 const navLinks = [
   { href: "/", label: "Home" },
@@ -40,24 +41,27 @@ export async function Navbar() {
               <span className="hidden rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/70 md:inline-flex">
                 {session.name}
               </span>
-              <LogoutButton />
+              <div className="hidden md:block">
+                <LogoutButton />
+              </div>
             </>
           ) : (
             <>
               <Link
                 href="/login"
-                className="rounded-full border border-white/15 px-4 py-2 text-sm text-white transition hover:bg-white/10"
+                className="hidden rounded-full border border-white/15 px-4 py-2 text-sm text-white transition hover:bg-white/10 md:inline-flex"
               >
                 Login
               </Link>
               <Link
                 href="/register"
-                className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-amber-100"
+                className="hidden rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-amber-100 md:inline-flex"
               >
                 Register
               </Link>
             </>
           )}
+          <MobileMenu isLoggedIn={!!session} userName={session?.name} />
         </div>
       </div>
     </header>

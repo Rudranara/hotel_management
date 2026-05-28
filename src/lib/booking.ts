@@ -5,7 +5,7 @@ import { diffInNights } from "@/utils/date";
 export async function ensureRoomAvailable(roomId: string, checkIn: string, checkOut: string) {
   const conflictingBooking = await Booking.findOne({
     room: roomId,
-    status: { $in: ["pending", "confirmed"] },
+    status: "confirmed",
     checkIn: { $lt: new Date(checkOut) },
     checkOut: { $gt: new Date(checkIn) },
   }).lean();

@@ -169,6 +169,13 @@ export function AuthForm({ mode }: AuthFormProps) {
           {touched.password && errors.password && (
             <p className="mt-1.5 text-xs text-red-400">{errors.password}</p>
           )}
+          {mode === "login" && (
+            <div className="mt-1.5 text-right">
+              <Link href="/forgot-password" className="text-xs text-white/50 transition hover:text-[#22C7C7]">
+                Forgot password?
+              </Link>
+            </div>
+          )}
         </div>
 
         <button

@@ -1,4 +1,4 @@
-import { Model, Schema, model, models } from "mongoose";
+import { Model, Schema, model, models, Types } from "mongoose";
 
 type UserRole = "guest" | "admin";
 
@@ -10,6 +10,9 @@ export interface UserDocument {
   phone?: string;
   address?: string;
   avatar?: string;
+  wishlist: Types.ObjectId[];
+  resetToken?: string;
+  resetTokenExpiry?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -23,6 +26,9 @@ const userSchema = new Schema<UserDocument>(
     phone: { type: String, default: "" },
     address: { type: String, default: "" },
     avatar: { type: String, default: "" },
+    wishlist: [{ type: Schema.Types.ObjectId, ref: "Room", default: [] }],
+    resetToken: { type: String, default: null },
+    resetTokenExpiry: { type: Date, default: null },
   },
   { timestamps: true },
 );

@@ -17,7 +17,7 @@ const staticRooms: { image: string; name: string; slug?: string; location: strin
   {
     image: "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1400&q=80",
     name: "Sea Breeze Signature Suite",
-    slug: undefined,
+    slug: "oceanfront-deluxe-king",
     location: "Puri Beachfront",
     rating: "4.9",
     price: "Rs 18,500",
@@ -27,7 +27,7 @@ const staticRooms: { image: string; name: string; slug?: string; location: strin
   {
     image: "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1400&q=80",
     name: "Skyline Premier Room",
-    slug: undefined,
+    slug: "garden-pool-villa",
     location: "Bhubaneswar Central",
     rating: "4.8",
     price: "Rs 12,000",
@@ -37,7 +37,7 @@ const staticRooms: { image: string; name: string; slug?: string; location: strin
   {
     image: "https://images.unsplash.com/photo-1505692952047-1a78307da8f2?auto=format&fit=crop&w=1400&q=80",
     name: "Lagoon Private Villa",
-    slug: undefined,
+    slug: "presidential-suite",
     location: "Chilika Waterfront",
     rating: "5.0",
     price: "Rs 24,000",

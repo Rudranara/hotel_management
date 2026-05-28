@@ -18,7 +18,10 @@ export async function POST(request: Request) {
 
     await connectToDatabase();
 
-    const { bookingId } = (await request.json()) as { bookingId: string };
+    const { bookingId, finalAmount } = (await request.json()) as {
+      bookingId: string;
+      finalAmount?: number;
+    };
     if (!bookingId) return apiError("bookingId is required.", 400);
 
     const booking = await Booking.findOne({ _id: bookingId, user: user._id })
@@ -39,8 +42,13 @@ export async function POST(request: Request) {
       key_secret: env.razorpayKeySecret,
     });
 
+    // Use discounted amount if provided (coupon applied), else fall back to booking price
+    const chargeAmount = typeof finalAmount === "number" && finalAmount > 0
+      ? finalAmount
+      : b.totalPrice;
+
     const order = await razorpay.orders.create({
-      amount: Math.round(b.totalPrice * 100), // paise
+      amount: Math.round(chargeAmount * 100), // paise
       currency: "INR",
       receipt: `bkg_${b.bookingNumber}`,
       notes: { bookingId: String(b._id) },

@@ -85,7 +85,7 @@ const allPackages = [
     description: "Paradise on earth — float on Dal Lake and wake up to the most breathtaking mountain views.",
   },
   {
-    image: "https://images.unsplash.com/photo-1477587458883-47145ed6979e?auto=format&fit=crop&w=900&q=80",
+    image: "https://images.unsplash.com/photo-1559494007-9f5847c49d94?auto=format&fit=crop&w=900&q=80",
     name: "Andaman Island Getaway",
     destination: "Port Blair, Andaman",
     duration: "6N/7D",

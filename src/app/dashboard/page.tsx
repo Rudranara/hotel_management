@@ -2,13 +2,14 @@ import Image from "next/image";
 import Link from "next/link";
 import {
   ArrowRight, BedDouble, CalendarDays, ChevronRight, Clock,
-  CreditCard, MapPin, Shield, Star, TrendingUp, Users,
+  CreditCard, Heart, MapPin, Shield, Star, TrendingUp, Users,
 } from "lucide-react";
 
 import { requireAuth, getDashboardData } from "@/lib/dal";
 import { formatDate, diffInNights } from "@/utils/date";
 import { formatCurrency } from "@/utils/format";
 import { BookingCard } from "@/components/booking-card";
+import { RoomCard } from "@/components/room-card";
 
 export const dynamic = "force-dynamic";
 
@@ -25,7 +26,7 @@ function getLoyaltyTier(count: number) {
 
 export default async function DashboardPage() {
   const user = await requireAuth();
-  const { bookings } = await getDashboardData(String(user._id));
+  const { bookings, savedRooms } = await getDashboardData(String(user._id));
 
   const now = new Date();
   const upcoming  = bookings.filter((b) => new Date(b.checkIn) > now && b.status !== "cancelled");
@@ -311,6 +312,32 @@ export default async function DashboardPage() {
               <p className="mt-1 text-sm text-[#9CA3AF]">{desc}</p>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* ── Saved / Wishlist rooms ──────────────────────────────── */}
+      {savedRooms.length > 0 && (
+        <div className="rounded-2xl border border-[#E5E7EB] bg-white shadow-sm">
+          <div className="flex items-center gap-2.5 border-b border-[#E5E7EB] px-6 py-4">
+            <Heart className="h-4 w-4 fill-red-400 text-red-400" />
+            <div>
+              <h2 className="font-bold text-[#111827]">Saved rooms</h2>
+              <p className="text-xs text-[#9CA3AF] mt-0.5">{savedRooms.length} room{savedRooms.length !== 1 ? "s" : ""} in your wishlist</p>
+            </div>
+          </div>
+          <div className="grid gap-6 p-6 sm:grid-cols-2 xl:grid-cols-3">
+            {(savedRooms as {
+              _id: unknown; name: string; slug: string; type: string; location: string;
+              price: number; images: string[]; rating: number; amenities: string[];
+              capacity?: number; availabilityStatus: string; reviewCount?: number;
+            }[]).map((room) => (
+              <RoomCard
+                key={String(room._id)}
+                room={{ ...room, _id: String(room._id) }}
+                isSaved={true}
+              />
+            ))}
+          </div>
         </div>
       )}
     </div>

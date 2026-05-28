@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { BedDouble, ChevronLeft, MapPin, Star, Users } from "lucide-react";
+import type { Metadata } from "next";
 
 import { connectToDatabase } from "@/lib/mongodb";
 import { isDatabaseConfigured } from "@/lib/env";
@@ -14,10 +15,27 @@ import { SetupNotice } from "@/components/setup-notice";
 
 export const dynamic = "force-dynamic";
 
-export const metadata = {
-  title: "Book a Room | Huts4u",
-  description: "Reserve your luxury stay at Huts4u.",
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ roomId: string }>;
+}): Promise<Metadata> {
+  if (!isDatabaseConfigured()) {
+    return { title: "Book a Room | Huts4u" };
+  }
+  try {
+    await connectToDatabase();
+    const { roomId } = await params;
+    const room = await Room.findById(roomId).lean<{ name?: string; location?: string }>();
+    if (!room) return { title: "Book a Room | Huts4u" };
+    return {
+      title: `Book ${room.name ?? "Room"} | Huts4u`,
+      description: `Reserve your stay at ${room.name ?? "Huts4u"}${room.location ? ` in ${room.location}` : ""}. Secure booking, instant confirmation.`,
+    };
+  } catch {
+    return { title: "Book a Room | Huts4u" };
+  }
+}
 
 export default async function BookingPage({
   params,

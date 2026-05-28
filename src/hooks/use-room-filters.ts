@@ -5,13 +5,17 @@ import { useDeferredValue, useEffect, useState } from "react";
 export function useRoomFilters<T extends { _id: unknown; name: string; type: string; location: string; price: number; capacity?: number }>(
   rooms: T[],
   initialType = "All",
+  initialCheckIn = "",
+  initialCheckOut = "",
+  initialLocation = "",
+  initialGuests = 1,
 ) {
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(initialLocation);
   const [type, setType] = useState(initialType);
   const [maxPrice, setMaxPrice] = useState(60000);
-  const [minCapacity, setMinCapacity] = useState(1);
-  const [checkIn, setCheckIn] = useState("");
-  const [checkOut, setCheckOut] = useState("");
+  const [minCapacity, setMinCapacity] = useState(Math.max(1, initialGuests));
+  const [checkIn, setCheckIn] = useState(initialCheckIn);
+  const [checkOut, setCheckOut] = useState(initialCheckOut);
   const [unavailableIds, setUnavailableIds] = useState<Set<string>>(new Set());
   const deferredQuery = useDeferredValue(query);
 

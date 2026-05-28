@@ -7,7 +7,7 @@ import { requireAuth, getBookingById } from "@/lib/dal";
 import { formatCurrency } from "@/utils/format";
 import { formatDate, diffInNights } from "@/utils/date";
 import { isRazorpayConfigured } from "@/lib/env";
-import { PayNowButton } from "@/components/forms/pay-now-button";
+import { CouponSection } from "@/components/forms/coupon-section";
 
 export const dynamic = "force-dynamic";
 
@@ -161,7 +161,7 @@ export default async function BookingConfirmationPage({
         {isPending && payment !== "success" && (
           <div className="mt-6">
             {paymentReady ? (
-              <PayNowButton bookingId={id} amount={formatCurrency(booking.totalPrice)} />
+              <CouponSection bookingId={id} totalPrice={booking.totalPrice} />
             ) : (
               <div className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4">
                 <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-amber-500" />

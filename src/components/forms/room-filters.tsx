@@ -1,6 +1,7 @@
 "use client";
 
-import { SlidersHorizontal } from "lucide-react";
+import { SlidersHorizontal, ChevronLeft, ChevronRight } from "lucide-react";
+import { useState, useEffect } from "react";
 
 import { ROOM_TYPES } from "@/lib/constants";
 import { useRoomFilters } from "@/hooks/use-room-filters";
@@ -22,10 +23,17 @@ interface RoomFiltersProps {
     amenities: string[];
     capacity?: number;
   }>;
+  savedRoomIds?: Set<string>;
   initialType?: string;
+  initialCheckIn?: string;
+  initialCheckOut?: string;
+  initialLocation?: string;
+  initialGuests?: number;
 }
 
-export function RoomFilters({ rooms, initialType }: RoomFiltersProps) {
+export function RoomFilters({ rooms, savedRoomIds = new Set(), initialType, initialCheckIn, initialCheckOut, initialLocation, initialGuests }: RoomFiltersProps) {
+  const PAGE_SIZE = 9;
+  const [page, setPage] = useState(1);
   const {
     query, setQuery,
     type, setType,
@@ -34,7 +42,12 @@ export function RoomFilters({ rooms, initialType }: RoomFiltersProps) {
     checkIn, setCheckIn,
     checkOut, setCheckOut,
     filteredRooms,
-  } = useRoomFilters(rooms, initialType);
+  } = useRoomFilters(rooms, initialType, initialCheckIn, initialCheckOut, initialLocation, initialGuests);
+
+  // Reset to page 1 whenever filtered results change
+  useEffect(() => {
+    setPage(1);
+  }, [filteredRooms.length, query, type, maxPrice, minCapacity, checkIn, checkOut]);
 
   const today = new Date().toISOString().split("T")[0];
 
@@ -145,6 +158,7 @@ export function RoomFilters({ rooms, initialType }: RoomFiltersProps) {
               setMinCapacity(1);
               setCheckIn("");
               setCheckOut("");
+              setPage(1);
             }}
             className="text-xs font-medium text-[#0057D9]/70 transition hover:text-[#0057D9]"
           >
@@ -154,11 +168,47 @@ export function RoomFilters({ rooms, initialType }: RoomFiltersProps) {
       </div>
 
       {filteredRooms.length > 0 ? (
-        <div className="grid gap-6 lg:grid-cols-2 xl:grid-cols-3">
-          {filteredRooms.map((room) => (
-            <RoomCard key={room._id} room={room} />
-          ))}
-        </div>
+        <>
+          <div className="grid gap-6 lg:grid-cols-2 xl:grid-cols-3">
+            {filteredRooms.slice(0, page * PAGE_SIZE).map((room) => (
+              <RoomCard key={room._id} room={room} isSaved={savedRoomIds.has(room._id)} />
+            ))}
+          </div>
+
+          {/* Load more / pagination */}
+          {filteredRooms.length > PAGE_SIZE && (
+            <div className="flex flex-col items-center gap-3 pt-2">
+              <p className="text-sm text-[#9CA3AF]">
+                Showing{" "}
+                <span className="font-semibold text-[#1A2235]">
+                  {Math.min(page * PAGE_SIZE, filteredRooms.length)}
+                </span>{" "}
+                of{" "}
+                <span className="font-semibold text-[#1A2235]">{filteredRooms.length}</span> rooms
+              </p>
+              <div className="flex items-center gap-2">
+                {page > 1 && (
+                  <button
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    className="flex items-center gap-1 rounded-xl border border-[#E5E7EB] bg-white px-4 py-2 text-sm font-medium text-[#64748B] shadow-sm transition hover:border-[#0057D9] hover:text-[#0057D9]"
+                  >
+                    <ChevronLeft size={15} />
+                    Previous
+                  </button>
+                )}
+                {page * PAGE_SIZE < filteredRooms.length && (
+                  <button
+                    onClick={() => setPage((p) => p + 1)}
+                    className="flex items-center gap-1 rounded-xl border border-[#E5E7EB] bg-white px-4 py-2 text-sm font-medium text-[#64748B] shadow-sm transition hover:border-[#0057D9] hover:text-[#0057D9]"
+                  >
+                    Load more
+                    <ChevronRight size={15} />
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+        </>
       ) : (
         <EmptyState
           title="No rooms match your filters"
