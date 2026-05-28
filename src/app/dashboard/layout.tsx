@@ -1,6 +1,7 @@
 import { Footer } from "@/components/layout/footer";
 import { Navbar } from "@/components/layout/navbar";
 import { DashboardShell } from "@/components/layout/dashboard-shell";
+import { AIAssistant } from "@/components/ai/ai-assistant";
 
 export default function DashboardLayout({
   children,
@@ -12,6 +13,7 @@ export default function DashboardLayout({
       <Navbar />
       <DashboardShell>{children}</DashboardShell>
       <Footer />
+      <AIAssistant />
     </div>
   );
 }

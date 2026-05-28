@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { startTransition, useState } from "react";
 import toast from "react-hot-toast";
+import { CalendarX } from "lucide-react";
 
 import { apiRequest } from "@/api/client";
 
@@ -10,10 +11,12 @@ export function BookingForm({
   roomId,
   roomName,
   pricePerNight = 0,
+  blockedRanges = [],
 }: {
   roomId: string;
   roomName: string;
   pricePerNight?: number;
+  blockedRanges?: { from: string; to: string }[];
 }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -31,6 +34,10 @@ export function BookingForm({
     if (co) {
       const coDate = new Date(co);
       if (coDate <= ciDate) return "Check-out must be at least 1 day after check-in.";
+      const overlaps = blockedRanges.some(
+        (r) => ciDate < new Date(r.to) && coDate > new Date(r.from),
+      );
+      if (overlaps) return "These dates overlap with an existing reservation. Please choose different dates.";
     }
     return "";
   }
@@ -137,7 +144,38 @@ export function BookingForm({
       </div>
       {dateError && <p className="mt-1 text-xs font-medium text-red-500">{dateError}</p>}
 
-      {/* Guests */}
+      {/* Unavailable periods */}
+      {blockedRanges.length > 0 && (
+        <div className="rounded-xl border border-rose-100 bg-rose-50 p-4">
+          <p className="mb-2 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-rose-600">
+            <CalendarX size={12} />
+            Unavailable dates
+          </p>
+          <div className="space-y-1.5">
+            {blockedRanges.map(({ from, to }, i) => {
+              const nights = Math.round(
+                (new Date(to).getTime() - new Date(from).getTime()) / 86_400_000,
+              );
+              const fmt = (iso: string) =>
+                new Date(iso).toLocaleDateString("en-IN", {
+                  day: "numeric",
+                  month: "short",
+                  year: "numeric",
+                });
+              return (
+                <div key={i} className="flex flex-wrap items-center gap-1 text-xs text-rose-700">
+                  <span className="font-semibold">{fmt(from)}</span>
+                  <span className="text-rose-400">→</span>
+                  <span className="font-semibold">{fmt(to)}</span>
+                  <span className="ml-auto rounded-full bg-rose-100 px-2 py-0.5 text-[10px] font-bold text-rose-600">
+                    {nights}n
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
       <label className="block">
         <span className={labelCls}>Guests</span>
         <input

@@ -97,25 +97,57 @@ export async function getRoomBySlug(slug: string) {
     return null;
   }
 
-  const [reviews, activeBookingCount] = await Promise.all([
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const [reviews, upcomingBookings] = await Promise.all([
     Review.find({ room: room._id })
       .populate("user", "name avatar")
       .sort({ createdAt: -1 })
       .lean(),
-    Booking.countDocuments({
+    Booking.find({
       room: room._id,
-      status: { $in: ["confirmed"] },
-      checkOut: { $gt: new Date() },
-    }),
+      status: { $in: ["confirmed", "pending"] },
+      checkOut: { $gt: today },
+    })
+      .select("checkIn checkOut")
+      .sort({ checkIn: 1 })
+      .lean(),
   ]);
+
+  const bookedRanges = upcomingBookings.map((b) => ({
+    from: (b.checkIn as Date).toISOString().split("T")[0] as string,
+    to:   (b.checkOut as Date).toISOString().split("T")[0] as string,
+  }));
 
   return {
     room: {
       ...room,
-      availabilityStatus: activeBookingCount > 0 ? "booked" : "available",
+      availabilityStatus: upcomingBookings.length > 0 ? "booked" : "available",
     },
     reviews,
+    bookedRanges,
   };
+}
+
+export async function getRoomBookedRanges(roomId: string): Promise<{ from: string; to: string }[]> {
+  await connectToDatabase();
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const bookings = await Booking.find({
+    room: roomId,
+    status: { $in: ["confirmed", "pending"] },
+    checkOut: { $gt: today },
+  })
+    .select("checkIn checkOut")
+    .sort({ checkIn: 1 })
+    .lean();
+
+  return bookings.map((b) => ({
+    from: (b.checkIn as Date).toISOString().split("T")[0] as string,
+    to:   (b.checkOut as Date).toISOString().split("T")[0] as string,
+  }));
 }
 
 export async function getDashboardData(userId: string) {

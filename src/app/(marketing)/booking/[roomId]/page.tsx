@@ -5,6 +5,7 @@ import { BedDouble, ChevronLeft, MapPin, Star, Users } from "lucide-react";
 
 import { connectToDatabase } from "@/lib/mongodb";
 import { isDatabaseConfigured } from "@/lib/env";
+import { getRoomBookedRanges } from "@/lib/dal";
 import Room from "@/models/Room";
 import { formatCurrency } from "@/utils/format";
 
@@ -40,6 +41,8 @@ export default async function BookingPage({
   if (!room) {
     notFound();
   }
+
+  const blockedRanges = await getRoomBookedRanges(roomId);
 
   const heroImage = room.images?.[0];
 
@@ -124,7 +127,7 @@ export default async function BookingPage({
           </div>
 
           {/* Right — booking form */}
-          <BookingForm roomId={String(room._id)} roomName={room.name} pricePerNight={room.price} />
+          <BookingForm roomId={String(room._id)} roomName={room.name} pricePerNight={room.price} blockedRanges={blockedRanges} />
         </div>
       </section>
     </div>

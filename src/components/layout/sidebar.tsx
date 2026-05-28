@@ -94,12 +94,6 @@ export function Sidebar() {
                   >
                     <Icon className="h-4 w-4 shrink-0" />
                     {item.label}
-                    {item.label === "Notifications" && (
-                      <span className="ml-auto rounded-full bg-[#FF6B35] px-1.5 py-0.5 text-[10px] font-bold text-white">3</span>
-                    )}
-                    {item.label === "Rewards" && (
-                      <span className="ml-auto rounded-full bg-[#22C55E] px-1.5 py-0.5 text-[10px] font-bold text-white">2,450 pts</span>
-                    )}
                   </Link>
                 );
               })}

@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ChevronLeft, MapPin, Star, Users, ShieldCheck, Clock, BadgeCheck } from "lucide-react";
+import { CalendarX, CheckCircle2, ChevronLeft, MapPin, Star, Users, ShieldCheck, Clock, BadgeCheck } from "lucide-react";
 
 import { getRoomBySlug } from "@/lib/dal";
 import { isDatabaseConfigured } from "@/lib/env";
@@ -20,6 +20,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   };
 }
 
+type BookedRange = { from: string; to: string };
+
 type NormalizedRoom = {
   _id: string;
   name: string;
@@ -36,6 +38,14 @@ type NormalizedRoom = {
   amenities: string[];
 };
 
+function fmtRange(iso: string) {
+  return new Date(iso).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+}
+
+function rangeDays(from: string, to: string) {
+  return Math.round((new Date(to).getTime() - new Date(from).getTime()) / 86_400_000);
+}
+
 type NormalizedReview = {
   _id: string;
   rating: number;
@@ -43,7 +53,7 @@ type NormalizedReview = {
   user: { name: string };
 };
 
-const DEMO_ROOMS: (NormalizedRoom & { reviews: NormalizedReview[] })[] = [
+const DEMO_ROOMS: (NormalizedRoom & { reviews: NormalizedReview[]; bookedRanges?: BookedRange[] })[] = [
   {
     _id: "demo-1",
     name: "Oceanfront Deluxe King",
@@ -102,6 +112,10 @@ const DEMO_ROOMS: (NormalizedRoom & { reviews: NormalizedReview[] })[] = [
     location: "Konark, Odisha",
     price: 45000,
     capacity: 3,
+    bookedRanges: [
+      { from: "2026-05-28", to: "2026-06-06" },
+      { from: "2026-06-18", to: "2026-06-22" },
+    ],
     description:
       "The pinnacle of luxury hospitality at Huts4u. Our Presidential Suite spans an entire private floor with panoramic views of the Konark coastline, a dedicated butler, chef's kitchen, home cinema, and a rooftop plunge pool exclusive to suite guests. An experience unlike any other.",
     images: [
@@ -205,11 +219,13 @@ export default async function RoomDetailsPage({
 
   let room: NormalizedRoom;
   let reviews: NormalizedReview[];
+  let bookedRanges: BookedRange[] = [];
 
   if (!isDatabaseConfigured()) {
     const demo = DEMO_ROOMS.find((r) => r.slug === slug) ?? DEMO_ROOMS[2];
     room = demo;
     reviews = demo.reviews;
+    bookedRanges = (demo as typeof demo & { bookedRanges?: BookedRange[] }).bookedRanges ?? [];
   } else {
     const payload = await getRoomBySlug(slug);
     if (!payload) notFound();
@@ -229,6 +245,8 @@ export default async function RoomDetailsPage({
       reviewCount: payload.room.reviewCount,
       amenities: payload.room.amenities,
     };
+
+    bookedRanges = payload.bookedRanges;
 
     reviews = payload.reviews.map((r) => ({
       _id: String(r._id),
@@ -340,6 +358,52 @@ export default async function RoomDetailsPage({
                     </span>
                   ))}
                 </div>
+              </div>
+
+              {/* ── Availability ── */}
+              <div className="rounded-2xl border border-[#E5E7EB] bg-white p-8 shadow-sm">
+                <p className="section-label">Availability</p>
+                <h2 className="mt-2 text-2xl font-bold text-[#1A2235]">When is this room free?</h2>
+
+                {bookedRanges.length === 0 ? (
+                  <div className="mt-5 flex items-center gap-3 rounded-2xl border border-emerald-100 bg-emerald-50 px-5 py-4">
+                    <CheckCircle2 size={18} className="shrink-0 text-emerald-500" />
+                    <p className="text-sm font-medium text-emerald-700">
+                      All future dates are currently open — pick any dates you like.
+                    </p>
+                  </div>
+                ) : (
+                  <>
+                    <p className="mt-3 text-sm leading-relaxed text-[#6B7280]">
+                      This room is already reserved for the periods below.
+                      Choose dates <strong>outside</strong> these windows.
+                    </p>
+
+                    <div className="mt-5 space-y-3">
+                      {bookedRanges.map(({ from, to }, i) => {
+                        const nights = rangeDays(from, to);
+                        return (
+                          <div
+                            key={i}
+                            className="flex flex-wrap items-center gap-3 rounded-2xl border border-rose-100 bg-rose-50 px-5 py-4"
+                          >
+                            <CalendarX size={16} className="shrink-0 text-rose-400" />
+                            <span className="flex-1 text-sm font-semibold text-rose-700">
+                              {fmtRange(from)}&nbsp;→&nbsp;{fmtRange(to)}
+                            </span>
+                            <span className="rounded-full bg-rose-100 px-2.5 py-0.5 text-[11px] font-bold text-rose-600">
+                              {nights} night{nights !== 1 ? "s" : ""} booked
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    <p className="mt-4 text-xs text-[#9CA3AF]">
+                      Availability refreshes in real-time on every page load.
+                    </p>
+                  </>
+                )}
               </div>
 
               {/* Reviews */}
