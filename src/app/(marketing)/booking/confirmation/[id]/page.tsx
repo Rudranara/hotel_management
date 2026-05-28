@@ -50,7 +50,7 @@ export default async function BookingConfirmationPage({
   };
 
   return (
-    <div className="min-h-screen bg-[#F1F5F9] px-4 py-16 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-[#F7F9FC] px-4 py-16 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-lg">
 
         {/* Payment result banners */}
@@ -58,16 +58,16 @@ export default async function BookingConfirmationPage({
           <div className="mb-6 flex items-start gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
             <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
             <div>
-              <p className="font-semibold text-emerald-800">Payment successful!</p>
+              <p className="font-bold text-emerald-800">Payment successful!</p>
               <p className="text-sm text-emerald-700">Your booking is now confirmed. See you soon!</p>
             </div>
           </div>
         )}
         {payment === "cancelled" && (
           <div className="mb-6 flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4">
-            <XCircle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
+            <XCircle className="mt-0.5 h-5 w-5 shrink-0 text-amber-500" />
             <div>
-              <p className="font-semibold text-amber-800">Payment not completed</p>
+              <p className="font-bold text-amber-800">Payment not completed</p>
               <p className="text-sm text-amber-700">Your booking is reserved but unpaid. Complete payment to confirm your stay.</p>
             </div>
           </div>
@@ -75,13 +75,24 @@ export default async function BookingConfirmationPage({
 
         {/* Header */}
         <div className="mb-8 text-center">
-          <div className={`mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full ${payment === "success" || booking.status === "confirmed" ? "bg-emerald-100" : "bg-[#22C7C7]/10"}`}>
-            <CheckCircle2 className={`h-8 w-8 ${payment === "success" || booking.status === "confirmed" ? "text-emerald-600" : "text-[#22C7C7]"}`} />
+          <div className={`mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full ${
+            payment === "success" || booking.status === "confirmed"
+              ? "bg-emerald-100"
+              : "bg-[#EEF4FF]"
+          }`}>
+            <CheckCircle2 className={`h-8 w-8 ${
+              payment === "success" || booking.status === "confirmed"
+                ? "text-emerald-600"
+                : "text-[#0057D9]"
+            }`} />
           </div>
-          <h1 className="text-3xl font-bold text-[#111827]">
-            {booking.status === "confirmed" ? "Booking confirmed!" : "You're booked!"}
+          <p className="section-label justify-center">
+            {booking.status === "confirmed" ? "Booking confirmed" : "Reservation received"}
+          </p>
+          <h1 className="mt-2 text-3xl font-bold text-[#1A2235]">
+            {booking.status === "confirmed" ? "You're all set!" : "You're booked!"}
           </h1>
-          <p className="mt-2 text-[#6B7280]">
+          <p className="mt-2 text-[#64748B]">
             {booking.status === "confirmed"
               ? "Your reservation is fully confirmed. We look forward to welcoming you."
               : "Your reservation has been received. Complete payment below to confirm your stay."}
@@ -89,7 +100,7 @@ export default async function BookingConfirmationPage({
         </div>
 
         {/* Booking card */}
-        <div className="overflow-hidden rounded-2xl border border-[#E5E7EB] bg-white shadow-sm">
+        <div className="overflow-hidden rounded-2xl border border-[#E5E7EB] bg-white shadow-md">
           {room?.images?.[0] && (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={room.images[0]} alt={room.name ?? "Room"} className="h-48 w-full object-cover" />
@@ -98,48 +109,49 @@ export default async function BookingConfirmationPage({
           <div className="space-y-5 p-6">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <p className="text-xs font-medium uppercase tracking-[0.35em] text-[#22C7C7]">Booking reference</p>
-                <p className="mt-1 font-mono text-xl font-bold text-[#111827]">{booking.bookingNumber}</p>
+                <p className="section-label">Booking reference</p>
+                <p className="mt-1 font-mono text-xl font-bold text-[#1A2235]">{booking.bookingNumber}</p>
               </div>
               <span className={`rounded-full border px-3 py-1 text-xs font-semibold capitalize ${statusColors[booking.status] ?? "bg-slate-50 text-slate-600 border-slate-200"}`}>
                 {booking.status}
               </span>
             </div>
 
-            <div className="space-y-3 rounded-xl border border-[#E5E7EB] bg-[#F8FAFC] p-4 text-sm">
-              <div className="flex items-center gap-3 text-[#374151]">
-                <MapPin className="h-4 w-4 text-[#22C7C7] shrink-0" />
-                <span className="font-medium">{room?.name ?? "Room"}</span>
+            <div className="space-y-3 rounded-xl border border-[#E5E7EB] bg-[#F7F9FC] p-4 text-sm">
+              <div className="flex items-center gap-3 text-[#1A2235]">
+                <MapPin className="h-4 w-4 shrink-0 text-[#0057D9]" />
+                <span className="font-semibold">{room?.name ?? "Room"}</span>
                 {room?.type && <span className="text-[#9CA3AF]">· {room.type}</span>}
               </div>
               {room?.location && (
-                <div className="flex items-center gap-3 text-[#6B7280]">
+                <div className="flex items-center gap-3 text-[#64748B]">
                   <MapPin className="h-4 w-4 shrink-0 opacity-0" />
                   {room.location}
                 </div>
               )}
-              <div className="flex items-center gap-3 text-[#374151]">
-                <CalendarDays className="h-4 w-4 text-[#22C7C7] shrink-0" />
+              <div className="flex items-center gap-3 text-[#1A2235]">
+                <CalendarDays className="h-4 w-4 shrink-0 text-[#0057D9]" />
                 <span>{formatDate(booking.checkIn)}</span>
                 <span className="text-[#D1D5DB]">→</span>
                 <span>{formatDate(booking.checkOut)}</span>
                 <span className="text-[#9CA3AF]">({nights} night{nights !== 1 ? "s" : ""})</span>
               </div>
-              <div className="flex items-center gap-3 text-[#374151]">
-                <Users className="h-4 w-4 text-[#22C7C7] shrink-0" />
+              <div className="flex items-center gap-3 text-[#1A2235]">
+                <Users className="h-4 w-4 shrink-0 text-[#0057D9]" />
                 {booking.guests} guest{booking.guests !== 1 ? "s" : ""}
               </div>
             </div>
 
-            <div className="flex items-center justify-between rounded-xl bg-[#22C7C7]/5 px-4 py-3">
-              <span className="text-sm text-[#6B7280]">Total amount</span>
-              <span className="text-xl font-bold text-[#111827]">{formatCurrency(booking.totalPrice)}</span>
+            {/* Total amount */}
+            <div className="flex items-center justify-between rounded-xl border border-[#DBEAFE] bg-[#EEF4FF] px-4 py-3">
+              <span className="text-sm font-medium text-[#475569]">Total amount</span>
+              <span className="text-xl font-bold text-[#0057D9]">{formatCurrency(booking.totalPrice)}</span>
             </div>
 
             {booking.specialRequests && (
-              <div className="rounded-xl border border-[#E5E7EB] bg-[#F8FAFC] px-4 py-3">
-                <p className="text-xs text-[#9CA3AF]">Special requests</p>
-                <p className="mt-1 text-sm text-[#374151]">{booking.specialRequests}</p>
+              <div className="rounded-xl border border-[#E5E7EB] bg-[#F7F9FC] px-4 py-3">
+                <p className="text-xs font-medium text-[#9CA3AF]">Special requests</p>
+                <p className="mt-1 text-sm text-[#475569]">{booking.specialRequests}</p>
               </div>
             )}
           </div>
@@ -152,9 +164,9 @@ export default async function BookingConfirmationPage({
               <PayNowButton bookingId={id} amount={formatCurrency(booking.totalPrice)} />
             ) : (
               <div className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4">
-                <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
+                <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-amber-500" />
                 <div className="space-y-1">
-                  <p className="text-sm font-semibold text-amber-800">Payment not configured</p>
+                  <p className="text-sm font-bold text-amber-800">Payment not configured</p>
                   <p className="text-xs text-amber-700">
                     Add <code className="rounded bg-amber-100 px-1 font-mono">RAZORPAY_KEY_ID</code> and{" "}
                     <code className="rounded bg-amber-100 px-1 font-mono">RAZORPAY_KEY_SECRET</code>{" "}
@@ -168,20 +180,21 @@ export default async function BookingConfirmationPage({
         )}
 
         {/* Actions */}
-        <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+        <div className="mt-6 flex flex-col gap-3 sm:flex-row">
           <Link
             href="/dashboard/bookings"
-            className="flex-1 rounded-full bg-[#111827] py-3 text-center text-sm font-semibold text-white transition hover:bg-[#374151]"
+            className="flex-1 rounded-full bg-[#FF6B35] py-3 text-center text-sm font-bold text-white shadow-[0_4px_20px_rgba(255,107,53,0.35)] transition hover:bg-[#E55A24]"
           >
             View all bookings
           </Link>
           <Link
             href="/rooms"
-            className="flex-1 rounded-full border border-[#E5E7EB] bg-white py-3 text-center text-sm font-semibold text-[#374151] transition hover:shadow-sm"
+            className="flex-1 rounded-full border border-[#E5E7EB] bg-white py-3 text-center text-sm font-semibold text-[#1A2235] transition hover:border-[#DBEAFE] hover:shadow-sm"
           >
             Explore more rooms
           </Link>
         </div>
+
       </div>
     </div>
   );

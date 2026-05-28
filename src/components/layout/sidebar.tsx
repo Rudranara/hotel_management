@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useState } from "react";
 import {
   LayoutDashboard, BookOpen, UserCircle, Heart, Wallet,
   Gift, Bell, CreditCard, HelpCircle, LogOut, Map, Bookmark,
@@ -14,20 +15,20 @@ const items = [
     links: [
       { href: "/dashboard",            label: "Dashboard",        icon: LayoutDashboard },
       { href: "/dashboard/bookings",   label: "My Bookings",      icon: BookOpen        },
-      { href: "/saved-trips",          label: "Saved Trips",      icon: Map             },
-      { href: "/wishlist",             label: "Wishlist",         icon: Heart           },
+      { href: "/dashboard/saved-trips", label: "Saved Trips",      icon: Map             },
+      { href: "/dashboard/wishlist",   label: "Wishlist",         icon: Heart           },
     ],
   },
   { group: "Finance",
     links: [
-      { href: "/wallet",               label: "Travel Wallet",    icon: Wallet          },
-      { href: "/rewards",              label: "Rewards",          icon: Gift            },
-      { href: "/payment-methods",      label: "Payment Methods",  icon: CreditCard      },
+      { href: "/dashboard/wallet",     label: "Travel Wallet",    icon: Wallet          },
+      { href: "/dashboard/rewards",      label: "Rewards",          icon: Gift            },
+      { href: "/dashboard/payment-methods", label: "Payment Methods",  icon: CreditCard      },
     ],
   },
   { group: "Account",
     links: [
-      { href: "/notifications",        label: "Notifications",    icon: Bell            },
+      { href: "/dashboard/notifications", label: "Notifications",    icon: Bell            },
       { href: "/dashboard/profile",    label: "Profile Settings", icon: UserCircle      },
       { href: "/support",              label: "Support Center",   icon: HelpCircle      },
       { href: "/logout",              label: "Logout",            icon: LogOut          },
@@ -37,6 +38,15 @@ const items = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+  const [loggingOut, setLoggingOut] = useState(false);
+
+  async function handleLogout() {
+    setLoggingOut(true);
+    await fetch("/api/logout", { method: "POST" });
+    router.push("/login");
+    router.refresh();
+  }
 
   return (
     <aside className="self-start sticky top-24 w-full rounded-2xl border border-[#E5E7EB] bg-white shadow-sm">
@@ -58,17 +68,28 @@ export function Sidebar() {
                 const active = pathname === item.href;
                 const Icon = item.icon;
                 const isLogout = item.label === "Logout";
+                if (isLogout) {
+                  return (
+                    <button
+                      key={item.href}
+                      onClick={handleLogout}
+                      disabled={loggingOut}
+                      className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition text-[#EF4444] hover:bg-[#FEF2F2] disabled:opacity-60"
+                    >
+                      <Icon className="h-4 w-4 shrink-0" />
+                      {loggingOut ? "Signing out…" : item.label}
+                    </button>
+                  );
+                }
                 return (
                   <Link
                     key={item.href}
                     href={item.href}
                     className={cn(
                       "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition",
-                      isLogout
-                        ? "text-[#EF4444] hover:bg-[#FEF2F2]"
-                        : active
-                          ? "bg-[#EEF4FF] text-[#0057D9]"
-                          : "text-[#6B7280] hover:bg-[#F7F9FC] hover:text-[#1A2235]",
+                      active
+                        ? "bg-[#EEF4FF] text-[#0057D9]"
+                        : "text-[#6B7280] hover:bg-[#F7F9FC] hover:text-[#1A2235]",
                     )}
                   >
                     <Icon className="h-4 w-4 shrink-0" />

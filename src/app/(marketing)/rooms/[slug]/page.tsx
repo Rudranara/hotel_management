@@ -241,10 +241,10 @@ export default async function RoomDetailsPage({
   const available = room.availabilityStatus === "available";
 
   return (
-    <div className="bg-[#020617]">
+    <div className="bg-white">
       {/* Hero */}
       <section className="relative overflow-hidden">
-        <div className="relative h-[60vh] min-h-[440px]">
+        <div className="relative h-[60vh] min-h-[460px]">
           <Image
             src={room.images[0]}
             alt={room.name}
@@ -253,13 +253,15 @@ export default async function RoomDetailsPage({
             className="object-cover"
             sizes="100vw"
           />
-          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(2,6,23,0.3)_0%,rgba(2,6,23,0.55)_50%,rgba(2,6,23,1)_100%)]" />
+          {/* Matching homepage multi-layer gradient */}
+          <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(10,22,40,0.82)_0%,rgba(0,87,217,0.45)_60%,rgba(0,87,217,0.15)_100%)]" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0A1628]/80 via-transparent to-transparent" />
 
           {/* Back button */}
           <div className="absolute left-4 top-6 z-10 sm:left-8">
             <Link
               href="/rooms"
-              className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-black/30 px-4 py-2 text-sm text-white backdrop-blur-md transition hover:bg-white/15"
+              className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-4 py-2 text-sm font-medium text-white backdrop-blur-md transition hover:bg-white/20"
             >
               <ChevronLeft size={15} />
               All rooms
@@ -267,34 +269,37 @@ export default async function RoomDetailsPage({
           </div>
 
           {/* Room info overlay */}
-          <div className="absolute bottom-0 left-0 right-0 z-10 px-4 pb-12 sm:px-8">
+          <div className="absolute bottom-0 left-0 right-0 z-10 px-4 pb-14 sm:px-8">
             <div className="mx-auto max-w-7xl">
               <div className="mb-4 flex flex-wrap items-center gap-2">
-                <span className="rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-slate-900">
+                <span className="rounded-full bg-[#0057D9] px-3 py-1 text-xs font-semibold text-white">
                   {room.type}
                 </span>
                 <span
                   className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                    available ? "bg-emerald-400/90 text-emerald-950" : "bg-red-400/85 text-red-950"
+                    available ? "bg-emerald-500 text-white" : "bg-red-500 text-white"
                   }`}
                 >
                   {available ? "Available" : "Currently Booked"}
                 </span>
+                <span className="rounded-full bg-[#FF6B35] px-3 py-1 text-xs font-bold text-white">
+                  SAVE 15%
+                </span>
               </div>
-              <h1 className="font-serif text-4xl leading-tight text-white sm:text-5xl lg:text-6xl">
+              <h1 className="text-4xl font-bold leading-tight text-white sm:text-5xl lg:text-6xl">
                 {room.name}
               </h1>
-              <div className="mt-4 flex flex-wrap items-center gap-5 text-sm text-white/65">
+              <div className="mt-4 flex flex-wrap items-center gap-5 text-sm text-white/75">
                 <span className="flex items-center gap-1.5">
-                  <MapPin size={14} className="text-amber-300" />
+                  <MapPin size={14} className="text-[#FF6B35]" />
                   {room.location}
                 </span>
                 <span className="flex items-center gap-1.5">
-                  <Star size={14} className="fill-amber-300 text-amber-300" />
+                  <Star size={14} className="fill-amber-400 text-amber-400" />
                   {room.rating.toFixed(1)} &middot; {room.reviewCount} reviews
                 </span>
                 <span className="flex items-center gap-1.5">
-                  <Users size={14} className="text-[#22C7C7]" />
+                  <Users size={14} className="text-white/60" />
                   Up to {room.capacity} guests
                 </span>
               </div>
@@ -304,154 +309,159 @@ export default async function RoomDetailsPage({
       </section>
 
       {/* Content */}
-      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-        <div className="grid gap-10 lg:grid-cols-[1fr_360px]">
+      <div className="bg-[#F7F9FC] py-12">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="grid gap-10 lg:grid-cols-[1fr_380px]">
 
-          {/* Left column */}
-          <div className="space-y-8">
+            {/* Left column */}
+            <div className="space-y-6">
 
-            {/* Image gallery with lightbox */}
-            {room.images.length > 0 && (
-              <ImageLightbox images={room.images} roomName={room.name} />
-            )}
-
-            {/* Description */}
-            <div className="rounded-[2rem] border border-white/10 bg-white/5 p-8">
-              <p className="text-xs uppercase tracking-[0.35em] text-[#22C7C7]">About this room</p>
-              <p className="mt-4 text-base leading-8 text-white/70">{room.description}</p>
-            </div>
-
-            {/* Amenities */}
-            <div className="rounded-[2rem] border border-white/10 bg-white/5 p-8">
-              <p className="mb-5 text-xs uppercase tracking-[0.35em] text-[#22C7C7]">Amenities &amp; features</p>
-              <div className="flex flex-wrap gap-2.5">
-                {room.amenities.map((amenity) => (
-                  <span
-                    key={amenity}
-                    className="rounded-full border border-white/15 bg-white/5 px-4 py-2 text-sm text-white/75"
-                  >
-                    {amenity}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            {/* Reviews */}
-            <div className="rounded-[2rem] border border-white/10 bg-white/5 p-8">
-              <div className="mb-6 flex items-center justify-between gap-4">
-                <div>
-                  <p className="text-xs uppercase tracking-[0.35em] text-[#22C7C7]">Guest reviews</p>
-                  <h2 className="mt-2 text-2xl font-semibold text-white">What travelers are saying</h2>
-                </div>
-                <div className="shrink-0 rounded-2xl bg-[#22C7C7]/15 px-4 py-3 text-center">
-                  <div className="flex items-center gap-1.5">
-                    <Star size={16} className="fill-amber-300 text-amber-300" />
-                    <span className="text-xl font-semibold text-white">{room.rating.toFixed(1)}</span>
-                  </div>
-                  <p className="mt-0.5 text-xs text-white/40">{room.reviewCount} reviews</p>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                {reviews.length > 0 ? (
-                  reviews.map((review) => (
-                    <article
-                      key={review._id}
-                      className="rounded-2xl border border-white/8 bg-white/4 p-5"
-                    >
-                      <div className="flex items-center justify-between gap-4">
-                        <div className="flex items-center gap-3">
-                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#22C7C7]/20 text-sm font-semibold text-[#22C7C7]">
-                            {review.user.name.charAt(0)}
-                          </div>
-                          <p className="font-medium text-white">{review.user.name}</p>
-                        </div>
-                        <div className="flex items-center gap-0.5">
-                          {Array.from({ length: Math.round(review.rating) }).map((_, i) => (
-                            <Star key={i} size={12} className="fill-amber-300 text-amber-300" />
-                          ))}
-                        </div>
-                      </div>
-                      <p className="mt-3 text-sm leading-relaxed text-white/60">{review.comment}</p>
-                    </article>
-                  ))
-                ) : (
-                  <p className="text-white/45">No reviews yet. Be the first to share your experience.</p>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Booking sidebar */}
-          <aside>
-            <div className="sticky top-24 rounded-[2rem] border border-white/10 bg-white/5 p-8">
-              <p className="text-xs uppercase tracking-[0.35em] text-[#22C7C7]">Reserve this room</p>
-
-              <div className="mt-5">
-                <p className="text-sm text-white/45">Per night</p>
-                <p className="mt-1 text-5xl font-semibold text-white">{formatCurrency(room.price)}</p>
-              </div>
-
-              <div className="mt-6 space-y-3 rounded-2xl border border-white/8 bg-white/4 p-4 text-sm">
-                <div className="flex items-center justify-between">
-                  <span className="text-white/45">Status</span>
-                  <span
-                    className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                      available ? "bg-emerald-400/15 text-emerald-300" : "bg-red-400/15 text-red-300"
-                    }`}
-                  >
-                    {available ? "Available" : "Booked"}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-white/45">Location</span>
-                  <span className="text-white/75">{room.location}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-white/45">Capacity</span>
-                  <span className="text-white/75">Up to {room.capacity} guests</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-white/45">Rating</span>
-                  <span className="flex items-center gap-1 text-white/75">
-                    <Star size={12} className="fill-amber-300 text-amber-300" />
-                    {room.rating.toFixed(1)} ({room.reviewCount})
-                  </span>
-                </div>
-              </div>
-
-              {available ? (
-                <Link
-                  href={`/booking/${room._id}`}
-                  className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#22C7C7] px-5 py-4 font-semibold text-white transition hover:bg-[#1AB5B5]"
-                >
-                  Book this room
-                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-                  </svg>
-                </Link>
-              ) : (
-                <div className="mt-6 inline-flex w-full cursor-not-allowed justify-center rounded-full bg-white/10 px-5 py-4 font-semibold text-white/30">
-                  Currently unavailable
-                </div>
+              {/* Image gallery */}
+              {room.images.length > 0 && (
+                <ImageLightbox images={room.images} roomName={room.name} />
               )}
 
-              {/* Guarantees */}
-              <div className="mt-5 space-y-2.5">
-                {[
-                  { icon: ShieldCheck, text: "Free cancellation within 24 hours" },
-                  { icon: Clock,       text: "24/7 guest support" },
-                  { icon: BadgeCheck,  text: "Best price guaranteed" },
-                ].map(({ icon: Icon, text }) => (
-                  <p key={text} className="flex items-center gap-2 text-xs text-white/40">
-                    <Icon size={13} className="shrink-0 text-[#22C7C7]/70" />
-                    {text}
-                  </p>
-                ))}
+              {/* Description */}
+              <div className="rounded-2xl border border-[#E5E7EB] bg-white p-8 shadow-sm">
+                <p className="section-label">About this room</p>
+                <p className="mt-4 text-base leading-8 text-[#475569]">{room.description}</p>
+              </div>
+
+              {/* Amenities */}
+              <div className="rounded-2xl border border-[#E5E7EB] bg-white p-8 shadow-sm">
+                <p className="section-label mb-5">Amenities &amp; features</p>
+                <div className="flex flex-wrap gap-2.5">
+                  {room.amenities.map((amenity) => (
+                    <span
+                      key={amenity}
+                      className="rounded-full border border-[#DBEAFE] bg-[#EEF4FF] px-4 py-2 text-sm font-medium text-[#0057D9]"
+                    >
+                      {amenity}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* Reviews */}
+              <div className="rounded-2xl border border-[#E5E7EB] bg-white p-8 shadow-sm">
+                <div className="mb-6 flex items-center justify-between gap-4">
+                  <div>
+                    <p className="section-label">Guest reviews</p>
+                    <h2 className="mt-2 text-2xl font-bold text-[#1A2235]">What travellers are saying</h2>
+                  </div>
+                  <div className="shrink-0 rounded-2xl border border-amber-100 bg-amber-50 px-5 py-3 text-center">
+                    <div className="flex items-center gap-1.5">
+                      <Star size={16} className="fill-amber-400 text-amber-400" />
+                      <span className="text-xl font-bold text-[#1A2235]">{room.rating.toFixed(1)}</span>
+                    </div>
+                    <p className="mt-0.5 text-xs text-[#9CA3AF]">{room.reviewCount} reviews</p>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  {reviews.length > 0 ? (
+                    reviews.map((review) => (
+                      <article
+                        key={review._id}
+                        className="rounded-xl border border-[#F1F5F9] bg-[#F7F9FC] p-5"
+                      >
+                        <div className="flex items-center justify-between gap-4">
+                          <div className="flex items-center gap-3">
+                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#0057D9] text-sm font-bold text-white">
+                              {review.user.name.charAt(0)}
+                            </div>
+                            <p className="font-semibold text-[#1A2235]">{review.user.name}</p>
+                          </div>
+                          <div className="flex items-center gap-0.5">
+                            {Array.from({ length: Math.round(review.rating) }).map((_, i) => (
+                              <Star key={i} size={12} className="fill-amber-400 text-amber-400" />
+                            ))}
+                          </div>
+                        </div>
+                        <p className="mt-3 text-sm leading-relaxed text-[#475569]">{review.comment}</p>
+                      </article>
+                    ))
+                  ) : (
+                    <p className="text-[#9CA3AF]">No reviews yet. Be the first to share your experience.</p>
+                  )}
+                </div>
               </div>
             </div>
-          </aside>
 
+            {/* Booking sidebar */}
+            <aside>
+              <div className="sticky top-24 rounded-2xl border border-[#E5E7EB] bg-white p-8 shadow-md">
+                <p className="section-label">Reserve this room</p>
+
+                <div className="mt-5">
+                  <p className="text-xs font-medium uppercase tracking-widest text-[#9CA3AF]">Per night</p>
+                  <p className="mt-1 text-5xl font-bold text-[#1A2235]">{formatCurrency(room.price)}</p>
+                </div>
+
+                <div className="mt-6 space-y-3 rounded-xl border border-[#F1F5F9] bg-[#F7F9FC] p-4 text-sm">
+                  {[
+                    {
+                      label: "Status",
+                      value: (
+                        <span className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                          available ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-500"
+                        }`}>
+                          {available ? "Available" : "Booked"}
+                        </span>
+                      ),
+                    },
+                    { label: "Location", value: <span className="text-[#475569]">{room.location}</span> },
+                    { label: "Capacity", value: <span className="text-[#475569]">Up to {room.capacity} guests</span> },
+                    {
+                      label: "Rating",
+                      value: (
+                        <span className="flex items-center gap-1 text-[#475569]">
+                          <Star size={12} className="fill-amber-400 text-amber-400" />
+                          {room.rating.toFixed(1)} ({room.reviewCount})
+                        </span>
+                      ),
+                    },
+                  ].map(({ label, value }) => (
+                    <div key={label} className="flex items-center justify-between gap-2">
+                      <span className="text-[#9CA3AF]">{label}</span>
+                      {value}
+                    </div>
+                  ))}
+                </div>
+
+                {available ? (
+                  <Link
+                    href={`/booking/${room._id}`}
+                    className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#FF6B35] px-5 py-4 font-bold text-white shadow-[0_4px_20px_rgba(255,107,53,0.35)] transition hover:bg-[#E55A24] hover:shadow-[0_6px_28px_rgba(255,107,53,0.45)]"
+                  >
+                    Book this room
+                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                    </svg>
+                  </Link>
+                ) : (
+                  <div className="mt-6 inline-flex w-full cursor-not-allowed justify-center rounded-full bg-[#F1F5F9] px-5 py-4 font-semibold text-[#9CA3AF]">
+                    Currently unavailable
+                  </div>
+                )}
+
+                {/* Guarantees */}
+                <div className="mt-5 space-y-2.5 border-t border-[#F1F5F9] pt-5">
+                  {[
+                    { icon: ShieldCheck, text: "Free cancellation within 24 hours" },
+                    { icon: Clock,       text: "24/7 guest support" },
+                    { icon: BadgeCheck,  text: "Best price guaranteed" },
+                  ].map(({ icon: Icon, text }) => (
+                    <p key={text} className="flex items-center gap-2 text-xs text-[#64748B]">
+                      <Icon size={13} className="shrink-0 text-[#0057D9]" />
+                      {text}
+                    </p>
+                  ))}
+                </div>
+              </div>
+            </aside>
+
+          </div>
         </div>
       </div>
     </div>
