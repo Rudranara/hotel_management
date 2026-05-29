@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   Plane, Hotel, Package, Car, Train, Bus,
@@ -27,7 +27,9 @@ export function HeroSection() {
   const [checkIn,  setCheckIn]  = useState("");
   const [checkOut, setCheckOut] = useState("");
   const [guests,   setGuests]   = useState(2);
-  const [destError, setDestError] = useState(false);
+  const [destError,     setDestError]     = useState(false);
+  const [checkOutError, setCheckOutError] = useState("");
+  const checkOutTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   function handleSearch() {
     if (!destination.trim()) {
@@ -145,17 +147,61 @@ export function HeroSection() {
                   <p className="text-[10px] font-semibold uppercase tracking-widest text-[#9CA3AF]">Check In</p>
                   <p className={`mt-0.5 text-sm font-medium ${checkIn ? "text-[#1A2235]" : "text-[#9CA3AF]"}`}>{checkIn || "Add date"}</p>
                 </div>
-                <input type="date" value={checkIn} min={today} onChange={(e) => { setCheckIn(e.target.value); if (checkOut && e.target.value >= checkOut) setCheckOut(""); }} className="absolute inset-0 w-full cursor-pointer opacity-0 [color-scheme:light]" aria-label="Check-in date" />
+                <input
+                  type="date"
+                  value={checkIn}
+                  min={today}
+                  onChange={(e) => {
+                    const newCheckIn = e.target.value;
+                    setCheckIn(newCheckIn);
+                    if (checkOut && newCheckIn >= checkOut) {
+                      setCheckOut("");
+                      if (checkOutTimerRef.current) clearTimeout(checkOutTimerRef.current);
+                      setCheckOutError("Check-out must be after check-in");
+                      checkOutTimerRef.current = setTimeout(() => setCheckOutError(""), 3000);
+                    }
+                  }}
+                  className="absolute inset-0 w-full cursor-pointer opacity-0 [color-scheme:light]"
+                  aria-label="Check-in date"
+                />
               </div>
 
               {/* Check Out */}
-              <div className="relative flex items-center gap-3 rounded-2xl border border-[#E5E7EB] bg-[#F7F9FC] px-4 py-3.5 transition focus-within:border-[#0057D9] focus-within:bg-white focus-within:ring-2 focus-within:ring-[#0057D9]/15">
-                <CalendarDays className="h-4 w-4 shrink-0 text-[#0057D9]" />
-                <div className="flex-1">
-                  <p className="text-[10px] font-semibold uppercase tracking-widest text-[#9CA3AF]">Check Out</p>
-                  <p className={`mt-0.5 text-sm font-medium ${checkOut ? "text-[#1A2235]" : "text-[#9CA3AF]"}`}>{checkOut || "Add date"}</p>
+              <div>
+                <div className={`relative flex items-center gap-3 rounded-2xl border px-4 py-3.5 transition ${
+                  checkOutError
+                    ? "animate-[shake_0.35s_ease-in-out] border-red-400 bg-red-50"
+                    : "border-[#E5E7EB] bg-[#F7F9FC] focus-within:border-[#0057D9] focus-within:bg-white focus-within:ring-2 focus-within:ring-[#0057D9]/15"
+                }`}>
+                  <CalendarDays className={`h-4 w-4 shrink-0 ${checkOutError ? "text-red-400" : "text-[#0057D9]"}`} />
+                  <div className="flex-1">
+                    <p className="text-[10px] font-semibold uppercase tracking-widest text-[#9CA3AF]">Check Out</p>
+                    <p className={`mt-0.5 text-sm font-medium ${checkOut ? "text-[#1A2235]" : checkOutError ? "text-red-400" : "text-[#9CA3AF]"}`}>
+                      {checkOut || "Add date"}
+                    </p>
+                  </div>
+                  <input
+                    type="date"
+                    value={checkOut}
+                    min={checkIn || today}
+                    onChange={(e) => {
+                      const newCheckOut = e.target.value;
+                      if (checkIn && newCheckOut <= checkIn) {
+                        if (checkOutTimerRef.current) clearTimeout(checkOutTimerRef.current);
+                        setCheckOutError("Check-out must be after check-in");
+                        checkOutTimerRef.current = setTimeout(() => setCheckOutError(""), 3000);
+                      } else {
+                        setCheckOutError("");
+                        setCheckOut(newCheckOut);
+                      }
+                    }}
+                    className="absolute inset-0 w-full cursor-pointer opacity-0 [color-scheme:light]"
+                    aria-label="Check-out date"
+                  />
                 </div>
-                <input type="date" value={checkOut} min={checkIn || today} onChange={(e) => setCheckOut(e.target.value)} className="absolute inset-0 w-full cursor-pointer opacity-0 [color-scheme:light]" aria-label="Check-out date" />
+                {checkOutError && (
+                  <p className="mt-1 px-1 text-xs font-medium text-red-500">{checkOutError}</p>
+                )}
               </div>
 
               {/* Guests */}

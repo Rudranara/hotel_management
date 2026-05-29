@@ -58,12 +58,13 @@ const CORRECTIONS: Record<string, string> = {
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
-export type AutocompleteDestination = { label: string; sublabel: string };
+export type AutocompleteDestination = { label: string; sublabel: string; roomCount?: number };
 export type AutocompleteRoom = {
   label: string;
   sublabel: string;
   slug: string;
   price: number;
+  image?: string;
 };
 export type AutocompleteResponse = {
   destinations: AutocompleteDestination[];
@@ -83,10 +84,25 @@ export async function GET(req: NextRequest) {
 
   const q = (req.nextUrl.searchParams.get("q") ?? "").trim().slice(0, 100);
 
-  // Empty query → return all popular destinations (no DB call needed)
+  // Empty query → return popular destinations with room counts
   if (!q) {
+    let popularWithCounts: AutocompleteDestination[] = POPULAR;
+    if (isDatabaseConfigured()) {
+      try {
+        await connectToDatabase();
+        const counts = await Promise.all(
+          POPULAR.map((p) =>
+            (Room as { countDocuments: (f: unknown) => Promise<number> }).countDocuments({
+              location: { $regex: p.label.split(",")[0]!, $options: "i" },
+              availabilityStatus: { $ne: "unavailable" },
+            }),
+          ),
+        );
+        popularWithCounts = POPULAR.map((p, i) => ({ ...p, roomCount: counts[i] }));
+      } catch { /* ignore */ }
+    }
     return Response.json({
-      destinations: POPULAR,
+      destinations: popularWithCounts,
       rooms: [],
       didYouMean: null,
       query: "",
@@ -147,30 +163,47 @@ export async function GET(req: NextRequest) {
   if (isDatabaseConfigured()) {
     try {
       await connectToDatabase();
-      // Escape regex special characters to prevent ReDoS
       const safeQ = q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-      const dbRooms = await (Room as {
-        find: (filter: unknown) => {
-          select: (fields: string) => {
-            limit: (n: number) => { lean: () => Promise<Array<{ name: string; slug: string; location: string; price: number }>> }
+
+      // Fetch room results + per-destination counts in parallel
+      const [dbRooms, destCounts] = await Promise.all([
+        (Room as {
+          find: (filter: unknown) => {
+            select: (fields: string) => {
+              limit: (n: number) => { lean: () => Promise<Array<{ name: string; slug: string; location: string; price: number; images: string[] }>> }
+            }
           }
-        }
-      }).find({
-        $or: [
-          { name:     { $regex: safeQ, $options: "i" } },
-          { location: { $regex: safeQ, $options: "i" } },
-        ],
-        availabilityStatus: { $ne: "unavailable" },
-      })
-        .select("name slug location price")
-        .limit(4)
-        .lean();
+        }).find({
+          $or: [
+            { name:     { $regex: safeQ, $options: "i" } },
+            { location: { $regex: safeQ, $options: "i" } },
+          ],
+          availabilityStatus: { $ne: "unavailable" },
+        })
+          .select("name slug location price images")
+          .limit(4)
+          .lean(),
+        Promise.all(
+          destinations.map((d) =>
+            (Room as { countDocuments: (f: unknown) => Promise<number> }).countDocuments({
+              location: { $regex: d.label.split(",")[0]!, $options: "i" },
+              availabilityStatus: { $ne: "unavailable" },
+            }).catch(() => undefined as number | undefined),
+          ),
+        ),
+      ]);
+
+      // Attach room counts to destinations
+      destinations.forEach((d, i) => {
+        (d as AutocompleteDestination).roomCount = destCounts[i];
+      });
 
       rooms = dbRooms.map((r) => ({
         label:    r.name,
         sublabel: `${r.location} · ₹${r.price.toLocaleString("en-IN")}/night`,
         slug:     r.slug,
         price:    r.price,
+        image:    r.images[0],
       }));
     } catch {
       // DB error — return gracefully without room results
