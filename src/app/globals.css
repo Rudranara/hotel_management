@@ -116,3 +116,12 @@ body {
   50%       { box-shadow: 0 0 0 12px rgba(0, 87, 217, 0); }
 }
 .ai-pulse { animation: ai-pulse 2s ease-in-out infinite; }
+
+/* ── Shake (destination required error) ─────────── */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%       { transform: translateX(-6px); }
+  40%       { transform: translateX(6px); }
+  60%       { transform: translateX(-4px); }
+  80%       { transform: translateX(4px); }
+}

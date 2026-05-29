@@ -9,10 +9,11 @@ export function useRoomFilters<T extends { _id: unknown; name: string; type: str
   initialCheckOut = "",
   initialLocation = "",
   initialGuests = 1,
+  initialMaxPrice = 60000,
 ) {
   const [query, setQuery] = useState(initialLocation);
   const [type, setType] = useState(initialType);
-  const [maxPrice, setMaxPrice] = useState(60000);
+  const [maxPrice, setMaxPrice] = useState(initialMaxPrice);
   const [minCapacity, setMinCapacity] = useState(Math.max(1, initialGuests));
   const [checkIn, setCheckIn] = useState(initialCheckIn);
   const [checkOut, setCheckOut] = useState(initialCheckOut);

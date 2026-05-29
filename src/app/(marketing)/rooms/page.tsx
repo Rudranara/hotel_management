@@ -105,9 +105,9 @@ const DEMO_ROOMS = [
 export default async function RoomsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ type?: string; checkIn?: string; checkOut?: string; location?: string; guests?: string }>;
+  searchParams: Promise<{ type?: string; checkIn?: string; checkOut?: string; location?: string; guests?: string; maxPrice?: string }>;
 }) {
-  const { type: initialType, checkIn, checkOut, location, guests } = await searchParams;
+  const { type: initialType, checkIn, checkOut, location, guests, maxPrice } = await searchParams;
   const dbReady = isDatabaseConfigured();
   const dbRooms = dbReady ? await getRooms() : [];
   const rooms = dbReady
@@ -203,6 +203,7 @@ export default async function RoomsPage({
             initialCheckOut={checkOut}
             initialLocation={location}
             initialGuests={guests ? Number(guests) : undefined}
+            initialMaxPrice={maxPrice ? Number(maxPrice) : undefined}
           />
         </div>
       </section>

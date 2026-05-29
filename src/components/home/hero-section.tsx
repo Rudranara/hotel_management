@@ -2,11 +2,13 @@
 
 import Image from "next/image";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   Plane, Hotel, Package, Car, Train, Bus,
   MapPin, CalendarDays, Users, Search, Sparkles,
-  TrendingUp, Clock, Mic,
 } from "lucide-react";
+
+import { SmartSearchBar, type AIFilters } from "@/components/search/smart-search-bar";
 
 const tabs = [
   { id: "hotels",   label: "Hotels",           icon: Hotel   },
@@ -17,33 +19,60 @@ const tabs = [
   { id: "bus",      label: "Bus",              icon: Bus     },
 ];
 
-const trendingDestinations = [
-  "Goa Beaches", "Manali Snow", "Kerala Backwaters", "Rajasthan Forts", "Andaman Islands",
-];
-
-const recentSearches = ["Puri · 2 Adults · Jun 15", "Bhubaneswar · 1 Adult · Jun 20"];
-
 export function HeroSection() {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState("hotels");
   const [destination, setDestination] = useState("");
-  const [showSuggestions, setShowSuggestions] = useState(false);
+  const today = new Date().toISOString().split("T")[0]!;
+  const [checkIn,  setCheckIn]  = useState("");
+  const [checkOut, setCheckOut] = useState("");
+  const [guests,   setGuests]   = useState(2);
+  const [destError, setDestError] = useState(false);
+
+  function handleSearch() {
+    if (!destination.trim()) {
+      setDestError(true);
+      setTimeout(() => setDestError(false), 600);
+      return;
+    }
+    const params = new URLSearchParams();
+    params.set("location", destination.trim());
+    if (checkIn)    params.set("checkIn",  checkIn);
+    if (checkOut)   params.set("checkOut", checkOut);
+    if (guests > 1) params.set("guests",   String(guests));
+    router.push(`/rooms?${params.toString()}`);
+  }
+
+  function handleAiSearch(filters: AIFilters) {
+    const params = new URLSearchParams();
+    if (filters.destination) params.set("location",  filters.destination);
+    if (filters.type)        params.set("type",      filters.type);
+    if (filters.maxPrice)    params.set("maxPrice",  String(filters.maxPrice));
+    if (filters.minGuests)   params.set("guests",    String(filters.minGuests));
+    if (!filters.minGuests && guests > 1) params.set("guests", String(guests));
+    if (checkIn)  params.set("checkIn",  checkIn);
+    if (checkOut) params.set("checkOut", checkOut);
+    router.push(`/rooms?${params.toString()}`);
+  }
 
   return (
-    <section className="relative min-h-[90vh] overflow-hidden">
-      {/* Background */}
-      <Image
-        src="https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?auto=format&fit=crop&w=2400&q=80"
-        alt="Premium travel destinations"
-        fill
-        priority
-        className="object-cover object-center"
-        sizes="100vw"
-      />
-      {/* Gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-b from-[#0A1628]/70 via-[#0A1628]/50 to-[#0A1628]/80" />
-      {/* Animated gradient orbs */}
-      <div className="absolute left-1/4 top-1/4 h-96 w-96 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#0057D9]/20 blur-3xl" />
-      <div className="absolute right-1/4 top-1/3 h-64 w-64 rounded-full bg-[#FF6B35]/15 blur-3xl" />
+    <section className="relative min-h-[90vh]">
+      {/* Background — overflow-hidden here so orbs/image stay clipped without affecting the dropdown */}
+      <div className="absolute inset-0 overflow-hidden">
+        <Image
+          src="https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?auto=format&fit=crop&w=2400&q=80"
+          alt="Premium travel destinations"
+          fill
+          priority
+          className="object-cover object-center"
+          sizes="100vw"
+        />
+        {/* Gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#0A1628]/70 via-[#0A1628]/50 to-[#0A1628]/80" />
+        {/* Animated gradient orbs */}
+        <div className="absolute left-1/4 top-1/4 h-96 w-96 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#0057D9]/20 blur-3xl" />
+        <div className="absolute right-1/4 top-1/3 h-64 w-64 rounded-full bg-[#FF6B35]/15 blur-3xl" />
+      </div>
 
       <div className="relative flex min-h-[90vh] flex-col items-center justify-center px-4 pb-16 pt-28 sm:pt-32 lg:pt-36">
         {/* AI badge */}
@@ -93,99 +122,56 @@ export function HeroSection() {
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_0.8fr_auto]">
               {/* Destination with AI suggestions */}
               <div className="relative sm:col-span-2 lg:col-span-1">
-                <div
-                  className="flex cursor-text items-center gap-3 rounded-2xl border border-[#E5E7EB] bg-[#F7F9FC] px-4 py-3.5 transition focus-within:border-[#0057D9] focus-within:bg-white focus-within:ring-2 focus-within:ring-[#0057D9]/15"
-                  onClick={() => setShowSuggestions(true)}
-                >
+                <div className={`flex cursor-text items-center gap-3 overflow-visible rounded-2xl border px-4 py-3.5 transition focus-within:border-[#0057D9] focus-within:bg-white focus-within:ring-2 focus-within:ring-[#0057D9]/15 ${destError ? "animate-[shake_0.35s_ease-in-out] border-red-400 bg-red-50 ring-2 ring-red-300/40" : "border-[#E5E7EB] bg-[#F7F9FC]"}`}>
                   <MapPin className="h-4 w-4 shrink-0 text-[#0057D9]" />
-                  <div className="min-w-0 flex-1">
+                  <div className="min-w-0 flex-1 overflow-visible">
                     <p className="text-[10px] font-semibold uppercase tracking-widest text-[#9CA3AF]">
                       {activeTab === "flights" ? "From" : "Destination"}
                     </p>
-                    <input
-                      type="text"
+                    <SmartSearchBar
                       value={destination}
-                      onChange={(e) => setDestination(e.target.value)}
+                      onChange={setDestination}
+                      onAiSearch={handleAiSearch}
                       placeholder={activeTab === "flights" ? "City or Airport" : "City, property or landmark"}
-                      className="mt-0.5 w-full bg-transparent text-sm font-medium text-[#1A2235] placeholder:text-[#9CA3AF] focus:outline-none"
-                      onFocus={() => setShowSuggestions(true)}
-                      onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
                     />
                   </div>
-                  <button className="shrink-0 rounded-full p-1.5 text-[#6B7280] transition hover:bg-[#E5E7EB]" aria-label="Voice search">
-                    <Mic className="h-3.5 w-3.5" />
-                  </button>
                 </div>
-
-                {/* Suggestions dropdown */}
-                {showSuggestions && (
-                  <div className="absolute left-0 top-full z-50 mt-2 w-full min-w-[280px] rounded-2xl border border-[#E5E7EB] bg-white py-2 shadow-2xl">
-                    {recentSearches.length > 0 && (
-                      <div className="px-3 pb-2">
-                        <p className="mb-1.5 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-widest text-[#9CA3AF]">
-                          <Clock className="h-3 w-3" />Recent Searches
-                        </p>
-                        {recentSearches.map((s) => (
-                          <button key={s} className="flex w-full items-center gap-2.5 rounded-xl px-2 py-2 text-left text-sm text-[#374151] transition hover:bg-[#F7F9FC]">
-                            <Clock className="h-3.5 w-3.5 shrink-0 text-[#9CA3AF]" />
-                            {s}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                    <div className="border-t border-[#F1F5F9] px-3 pt-2">
-                      <p className="mb-1.5 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-widest text-[#9CA3AF]">
-                        <TrendingUp className="h-3 w-3" />Trending Now
-                      </p>
-                      {trendingDestinations.map((d) => (
-                        <button
-                          key={d}
-                          onMouseDown={() => setDestination(d)}
-                          className="flex w-full items-center gap-2.5 rounded-xl px-2 py-2 text-left text-sm text-[#374151] transition hover:bg-[#F7F9FC]"
-                        >
-                          <TrendingUp className="h-3.5 w-3.5 shrink-0 text-[#FF6B35]" />
-                          {d}
-                        </button>
-                      ))}
-                    </div>
-                    {/* AI suggestion strip */}
-                    <div className="mx-3 mt-2 flex items-center gap-2 rounded-xl bg-[#EEF4FF] px-3 py-2.5">
-                      <Sparkles className="h-4 w-4 shrink-0 text-[#0057D9]" />
-                      <p className="text-xs text-[#0057D9]"><strong>AI Tip:</strong> Weekend in Goa is 40% cheaper next week</p>
-                    </div>
-                  </div>
-                )}
               </div>
 
               {/* Check In */}
-              <div className="flex items-center gap-3 rounded-2xl border border-[#E5E7EB] bg-[#F7F9FC] px-4 py-3.5 transition focus-within:border-[#0057D9] focus-within:bg-white focus-within:ring-2 focus-within:ring-[#0057D9]/15">
+              <div className="relative flex items-center gap-3 rounded-2xl border border-[#E5E7EB] bg-[#F7F9FC] px-4 py-3.5 transition focus-within:border-[#0057D9] focus-within:bg-white focus-within:ring-2 focus-within:ring-[#0057D9]/15">
                 <CalendarDays className="h-4 w-4 shrink-0 text-[#0057D9]" />
-                <div>
+                <div className="flex-1">
                   <p className="text-[10px] font-semibold uppercase tracking-widest text-[#9CA3AF]">Check In</p>
-                  <input type="date" className="mt-0.5 bg-transparent text-sm font-medium text-[#1A2235] focus:outline-none" />
+                  <p className={`mt-0.5 text-sm font-medium ${checkIn ? "text-[#1A2235]" : "text-[#9CA3AF]"}`}>{checkIn || "Add date"}</p>
                 </div>
+                <input type="date" value={checkIn} min={today} onChange={(e) => { setCheckIn(e.target.value); if (checkOut && e.target.value >= checkOut) setCheckOut(""); }} className="absolute inset-0 w-full cursor-pointer opacity-0 [color-scheme:light]" aria-label="Check-in date" />
               </div>
 
               {/* Check Out */}
-              <div className="flex items-center gap-3 rounded-2xl border border-[#E5E7EB] bg-[#F7F9FC] px-4 py-3.5 transition focus-within:border-[#0057D9] focus-within:bg-white focus-within:ring-2 focus-within:ring-[#0057D9]/15">
+              <div className="relative flex items-center gap-3 rounded-2xl border border-[#E5E7EB] bg-[#F7F9FC] px-4 py-3.5 transition focus-within:border-[#0057D9] focus-within:bg-white focus-within:ring-2 focus-within:ring-[#0057D9]/15">
                 <CalendarDays className="h-4 w-4 shrink-0 text-[#0057D9]" />
-                <div>
+                <div className="flex-1">
                   <p className="text-[10px] font-semibold uppercase tracking-widest text-[#9CA3AF]">Check Out</p>
-                  <input type="date" className="mt-0.5 bg-transparent text-sm font-medium text-[#1A2235] focus:outline-none" />
+                  <p className={`mt-0.5 text-sm font-medium ${checkOut ? "text-[#1A2235]" : "text-[#9CA3AF]"}`}>{checkOut || "Add date"}</p>
                 </div>
+                <input type="date" value={checkOut} min={checkIn || today} onChange={(e) => setCheckOut(e.target.value)} className="absolute inset-0 w-full cursor-pointer opacity-0 [color-scheme:light]" aria-label="Check-out date" />
               </div>
 
               {/* Guests */}
-              <div className="flex items-center gap-3 rounded-2xl border border-[#E5E7EB] bg-[#F7F9FC] px-4 py-3.5 transition focus-within:border-[#0057D9] focus-within:bg-white focus-within:ring-2 focus-within:ring-[#0057D9]/15">
+              <div className="relative flex items-center gap-3 rounded-2xl border border-[#E5E7EB] bg-[#F7F9FC] px-4 py-3.5 transition focus-within:border-[#0057D9] focus-within:bg-white focus-within:ring-2 focus-within:ring-[#0057D9]/15">
                 <Users className="h-4 w-4 shrink-0 text-[#0057D9]" />
-                <div>
+                <div className="flex-1">
                   <p className="text-[10px] font-semibold uppercase tracking-widest text-[#9CA3AF]">Guests</p>
-                  <p className="mt-0.5 text-sm font-medium text-[#1A2235]">2 Adults, 1 Room</p>
+                  <p className="mt-0.5 text-sm font-medium text-[#1A2235]">{guests} Guest{guests !== 1 ? "s" : ""}</p>
                 </div>
+                <select value={guests} onChange={(e) => setGuests(Number(e.target.value))} className="absolute inset-0 w-full cursor-pointer opacity-0" aria-label="Number of guests">
+                  {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => <option key={n} value={n}>{n} Guest{n !== 1 ? "s" : ""}</option>)}
+                </select>
               </div>
 
               {/* Search button */}
-              <button className="flex items-center justify-center gap-2 rounded-2xl bg-[#0057D9] px-6 py-3.5 font-semibold text-white shadow-[0_8px_24px_rgba(0,87,217,0.35)] transition hover:-translate-y-0.5 hover:bg-[#003A8C] hover:shadow-[0_12px_32px_rgba(0,87,217,0.45)] active:translate-y-0 sm:col-span-2 lg:col-span-1">
+              <button onClick={handleSearch} className="flex items-center justify-center gap-2 rounded-2xl bg-[#0057D9] px-6 py-3.5 font-semibold text-white shadow-[0_8px_24px_rgba(0,87,217,0.35)] transition hover:-translate-y-0.5 hover:bg-[#003A8C] hover:shadow-[0_12px_32px_rgba(0,87,217,0.45)] active:translate-y-0 sm:col-span-2 lg:col-span-1" aria-label="Search rooms">
                 <Search className="h-4 w-4" />
                 <span>Search</span>
               </button>

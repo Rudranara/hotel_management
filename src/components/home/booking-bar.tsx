@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { CalendarDays, MapPin, Search, Users } from "lucide-react";
-import { LOCATIONS } from "@/lib/constants";
+
+import { SmartSearchBar, type AIFilters } from "@/components/search/smart-search-bar";
 
 const selectCls = "absolute inset-0 w-full cursor-pointer opacity-0";
 
@@ -25,22 +26,34 @@ export function BookingBar() {
     router.push(`/rooms?${params.toString()}`);
   }
 
+  function handleAiSearch(filters: AIFilters) {
+    const params = new URLSearchParams();
+    if (filters.destination) params.set("location",  filters.destination);
+    if (filters.type)        params.set("type",      filters.type);
+    if (filters.maxPrice)    params.set("maxPrice",  String(filters.maxPrice));
+    if (filters.minGuests)   params.set("guests",    String(filters.minGuests));
+    // Preserve manually set dates/guests when AI doesn't override them
+    if (!filters.minGuests && guests > 1) params.set("guests", String(guests));
+    if (checkIn)  params.set("checkIn",  checkIn);
+    if (checkOut) params.set("checkOut", checkOut);
+    router.push(`/rooms?${params.toString()}`);
+  }
+
   return (
     <div className="rounded-3xl border border-[#E5E7EB] bg-white p-4 shadow-[0_8px_40px_rgba(17,24,39,0.14)] sm:rounded-full sm:p-4 md:px-6 md:py-5 lg:px-8 lg:py-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-0">
         {/* Destination */}
         <div className="relative flex flex-1 items-center gap-3 rounded-2xl bg-[#F9FAFB] px-4 py-3.5 sm:rounded-none sm:bg-transparent sm:px-4 md:px-6 lg:gap-4 lg:px-8">
           <MapPin className="h-4 w-4 shrink-0 text-[#111827] md:h-5 md:w-5" />
-          <div className="min-w-0 flex-1">
+          <div className="min-w-0 flex-1 overflow-visible">
             <p className="text-[10px] uppercase tracking-[0.22em] text-[#9CA3AF] sm:text-xs lg:text-sm">Destination</p>
-            <p className={`mt-0.5 truncate text-sm md:text-base ${location ? "text-[#111827]" : "text-[#9CA3AF]"}`}>
-              {location || "Choose location"}
-            </p>
+            <SmartSearchBar
+              value={location}
+              onChange={setLocation}
+              onAiSearch={handleAiSearch}
+              placeholder="Search destinations…"
+            />
           </div>
-          <select value={location} onChange={(e) => setLocation(e.target.value)} className={selectCls} aria-label="Choose destination">
-            <option value="">Any destination</option>
-            {LOCATIONS.map((loc) => <option key={loc} value={loc}>{loc}</option>)}
-          </select>
         </div>
 
         <div className="hidden h-10 w-px bg-[#E5E7EB] sm:block md:h-12 lg:h-14" />

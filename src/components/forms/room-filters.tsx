@@ -29,9 +29,10 @@ interface RoomFiltersProps {
   initialCheckOut?: string;
   initialLocation?: string;
   initialGuests?: number;
+  initialMaxPrice?: number;
 }
 
-export function RoomFilters({ rooms, savedRoomIds = new Set(), initialType, initialCheckIn, initialCheckOut, initialLocation, initialGuests }: RoomFiltersProps) {
+export function RoomFilters({ rooms, savedRoomIds = new Set(), initialType, initialCheckIn, initialCheckOut, initialLocation, initialGuests, initialMaxPrice }: RoomFiltersProps) {
   const PAGE_SIZE = 9;
   const [page, setPage] = useState(1);
   const {
@@ -42,7 +43,7 @@ export function RoomFilters({ rooms, savedRoomIds = new Set(), initialType, init
     checkIn, setCheckIn,
     checkOut, setCheckOut,
     filteredRooms,
-  } = useRoomFilters(rooms, initialType, initialCheckIn, initialCheckOut, initialLocation, initialGuests);
+  } = useRoomFilters(rooms, initialType, initialCheckIn, initialCheckOut, initialLocation, initialGuests, initialMaxPrice);
 
   // Reset to page 1 whenever filtered results change
   useEffect(() => {
