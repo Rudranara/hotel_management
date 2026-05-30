@@ -23,13 +23,11 @@ export async function getCurrentUser() {
 }
 
 export async function getApiUser() {
-  await connectToDatabase();
+  // Check session first — no DB needed for auth check
   const session = await getSession();
+  if (!session?.userId) return null;
 
-  if (!session?.userId) {
-    return null;
-  }
-
+  await connectToDatabase();
   return User.findById(session.userId).select("-password").lean();
 }
 

@@ -5,6 +5,7 @@ import { getApiUser } from "@/lib/dal";
 import { apiError } from "@/lib/http";
 import { connectToDatabase } from "@/lib/mongodb";
 import { env, isRazorpayConfigured } from "@/lib/env";
+import { getOrCreateRazorpayCustomer } from "@/lib/razorpay";
 import Booking from "@/models/Booking";
 
 export async function POST(request: Request) {
@@ -17,6 +18,15 @@ export async function POST(request: Request) {
     if (!user) return apiError("Authentication required.", 401);
 
     await connectToDatabase();
+
+    // Lazily create a Razorpay Customer so saved cards are linked
+    const razorpayUser = user as typeof user & { razorpayCustomerId?: string };
+    const customerId = await getOrCreateRazorpayCustomer(String(user._id), {
+      name: user.name,
+      email: user.email,
+      phone: user.phone ?? undefined,
+      existingCustomerId: razorpayUser.razorpayCustomerId ?? undefined,
+    });
 
     const { bookingId, finalAmount } = (await request.json()) as {
       bookingId: string;
@@ -59,6 +69,7 @@ export async function POST(request: Request) {
       amount: order.amount,
       currency: order.currency,
       keyId: env.razorpayKeyId,
+      customerId: customerId ?? undefined,
     });
   } catch (err) {
     console.error("[checkout]", err);

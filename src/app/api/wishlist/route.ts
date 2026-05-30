@@ -38,7 +38,7 @@ export async function POST(request: Request) {
     const fresh = await User.findById(user._id).select("wishlist").lean();
     if (!fresh) return apiError("User not found.", 404);
 
-    const already = fresh.wishlist.map(String).includes(roomId);
+    const already = (fresh.wishlist ?? []).map(String).includes(roomId);
 
     if (already) {
       await User.findByIdAndUpdate(user._id, { $pull: { wishlist: roomId } });

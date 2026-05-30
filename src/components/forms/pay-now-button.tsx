@@ -10,6 +10,8 @@ interface RazorpayOptions {
   name: string;
   description: string;
   order_id: string;
+  customer_id?: string;
+  save?: 0 | 1;
   handler: (response: {
     razorpay_payment_id: string;
     razorpay_order_id: string;
@@ -17,12 +19,6 @@ interface RazorpayOptions {
   }) => void;
   theme?: { color?: string };
   modal?: { ondismiss?: () => void };
-}
-
-declare global {
-  interface Window {
-    Razorpay: new (options: RazorpayOptions) => { open(): void };
-  }
 }
 
 function loadRazorpayScript(): Promise<boolean> {
@@ -67,6 +63,7 @@ export function PayNowButton({
         amount?: number;
         currency?: string;
         keyId?: string;
+        customerId?: string;
         message?: string;
       };
       if (!res.ok) throw new Error(data.message ?? "Failed to create order");
@@ -78,6 +75,7 @@ export function PayNowButton({
         name: "Huts4u",
         description: "Room Booking Payment",
         order_id: data.orderId!,
+        ...(data.customerId ? { customer_id: data.customerId, save: 1 as const } : {}),
         handler: async (response) => {
           try {
             const verifyRes = await fetch("/api/verify-payment", {
